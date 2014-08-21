@@ -1,0 +1,11 @@
+def golden_age(arr)
+    arrLen = len(arr)
+    yearDict = {}
+    for start in range(arrLen):
+        for end in range(start, arrLen):
+            yearDict[(start, end)] = sum(arr[start:end+1])
+    keys=list(yearDict.keys())
+    vals=[yearDict[key] for key in keys]
+    return list(keys[vals.index(max(vals))])
+
+print golden_age([100, -101, 200, -3, 1000])

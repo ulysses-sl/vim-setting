@@ -1,0 +1,213 @@
+# decisionTree.py
+# -----------------------
+# COSC480 AI, Colgate University
+
+import classificationMethod
+import math
+import util
+
+class DecisionTreeClassifer(classificationMethod.ClassificationMethod):
+    '''
+    Decision tree classifer.
+
+    Note that the variable 'datum' in this code refers to a counter of features
+    (not to raw data such as that produced by the loadXXX functions in samples.py).
+    '''
+
+    def __init__(self, legalLabels, max_depth=30):  # feel free to change default max_depth
+        self.legalLabels = legalLabels
+        self.depth = max_depth 
+        self.root = None       # training should replace this with root of decision tree!
+        "*** YOUR CODE HERE ***"
+
+
+    def findEntropy(self, labels):
+        """
+        get entropy of a data
+        """
+        labSet = set(labels)
+        numSet = len(labels)
+        entropy = 0
+        for eachLabel in labSet:
+            numClass = labels.count(eachLabel)
+            x = (1.0 * numClass) / numSet
+            if x != 0:
+                entropy += x * math.log(x, 2)
+        entropy *= -1
+        return entropy
+
+
+    def splitCount(self, feature, data, labels):
+        """
+        split the data based on feature
+        """
+        valCount = {}
+        possibleVals = set([datum[feature] for datum in data])
+
+        for val in possibleVals:
+            valCount[val] = []
+
+        for i in range(len(labels)):
+            val = data[i][feature]
+            valCount[val].append(labels[i])
+        
+        return valCount
+
+
+    def findEntropyGain(self, feature, data, labels):
+        """
+        find the entropy gain for the particular feature split
+        """
+        entropyOrig = self.findEntropy(labels)
+
+        numSet = len(labels)
+        valCount = self.splitCount(feature, data, labels)
+        possibleVals = set([datum[feature] for datum in data])
+
+        entropyNew = 0
+        for eachVal in possibleVals:
+            subsetLabel = valCount[eachVal]
+            temp = (1.0 * len(subsetLabel)) / (1.0 * numSet) * self.findEntropy(subsetLabel)
+            entropyNew += temp
+        return entropyOrig - entropyNew
+
+
+    def chooseMaxSplits(self, features, data, labels):
+        entropy = [self.findEntropyGain(f, data, labels) for f in features]
+        return features[entropy.index(max(entropy))]
+
+
+    def train(self, trainingData, trainingLabels):
+        '''
+        Train the decision tree on training data.
+        '''
+        # might be useful in your code later...
+        # this is a list of all features in the training set.
+        features = list(set([ f for datum in trainingData for f in datum.keys() ]));
+        "*** YOUR CODE HERE ***"
+        self.root = self.trainRecurse(trainingData, trainingLabels, features, 0)
+
+
+    def trainRecurse(self, data, labels, features, d):
+        d += 1
+        feature = self.chooseMaxSplits(features, data, labels)
+        featureVals = list(set([datum[feature] for datum in data]))
+        features.remove(feature)
+
+        node = DecisionNode(feature)
+        node.updateFeatureVals(featureVals)
+        node.updateInfoGain(self.findEntropyGain(feature, data, labels))
+
+        newLabels = self.splitCount(feature, data, labels)
+        newData = {}
+        for fv in featureVals:
+            newData[fv] = []
+        for i in range(len(data)):
+            newData[data[i][feature]].append(data[i])
+
+        for fv in featureVals:
+            lab = newLabels[fv]
+            labSplit = {}
+            uniform = False
+            for i in range(len(lab)):
+                if lab[i] not in labSplit.keys():
+                    labSplit[lab[i]] = 0
+                labSplit[lab[i]] += 1
+            if len(lab) in labSplit.values():
+                uniform = True
+            if d == self.depth or uniform:
+                node.children[fv] = \
+                    labSplit.keys()[labSplit.values().index(max(labSplit.values()))]
+            else:
+                node.children[fv] = \
+                    self.trainRecurse(newData[fv], newLabels[fv], features, d)
+        return node
+
+
+    def classify(self, data):
+        """
+        Classifies each datum by passing it through the decision tree.  
+
+        Expects data to be a list.  Each datum in list is a feature vector (i.e., a dictionary)
+        """
+        "*** YOUR CODE HERE ***"
+        features = list(set([ f for datum in data for f in datum.keys() ]))
+        return [self.classifyDatum(datum, self.root) for datum in data]
+
+
+    def classifyDatum(self, datum, node):
+        if isinstance(node, str):
+            return node
+        else:
+            return self.classifyDatum(datum, node.children[datum[node.feature]])
+
+
+    def printDiagnostics(self):
+        """
+        This function is called after the classifier has been trained.  
+
+        It should print the first five levels of the decision tree in a nicely 
+        formatted way.
+        
+        Ex)
+        Split on pat (info gain = 0.540852082973):
+        pat=none ==>
+            Label = no
+        pat=full ==>
+            Split on est (info gain = 0.251629167388):
+            est=10-30 ==>
+                Split on bar (info gain = 1.0):
+                bar=yes ==>
+                    Label = no
+                bar=no ==>
+                    Label = yes
+            est=30-60 ==>
+                Split on bar (info gain = 1.0):
+                bar=yes ==>
+                    Label = yes
+                bar=no ==>
+                    Label = no
+            est=60+ ==>
+                Label = no
+        pat=some ==>
+            Label = yes
+        """
+        "*** YOUR CODE HERE ***"
+        lvl = 0
+        node = self.root
+        self.printRec(node, lvl)
+
+    def printRec(self, node, lvl):
+        if isinstance(node, str):
+            print (lvl * "    ") + "Label = " + node
+            return
+        print (lvl * "    ") + "Split on " + str(node.feature) + " (info gain = " + str(node.infoGain) + "):"
+        if lvl >= 5:
+            print (lvl * "    ") + "Depth 5 achieved."
+            return
+        for fv in node.featureVals:
+            print (lvl * "    ") + str(node.feature) + "=" + fv + " ==>"
+            self.printRec(node.children[fv], lvl+1)
+
+
+"*** YOUR CODE HERE ***"
+"""
+You may find it helpful to create additional classes/functions
+such as making a DecisionNode class that represents a single 
+node in the decision tree.
+"""
+class DecisionNode:
+    """
+    decision node
+    """
+    def __init__(self, feature):
+        self.feature = feature
+        self.featureVals = []
+        self.children = {}
+        self.infoGain = 0
+
+    def updateFeatureVals(self, featureVals):
+        self.featureVals = featureVals
+
+    def updateInfoGain(self, gain):
+        self.infoGain = gain

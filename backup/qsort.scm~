@@ -1,0 +1,8 @@
+(use srfi-71)
+
+(define (quicksort lst)
+  (if (null? lst)
+      '()
+      (let* ((pivot rest (car+cdr lst))
+             (less more (partition (lambda (x) (x <= pivot)) rest)))
+        (append (quicksort less) (cons pivot (quicksort more))))))

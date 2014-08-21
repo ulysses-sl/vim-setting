@@ -1,0 +1,11 @@
+palindrome x = x == reverseDigit x
+
+reverseDigit x = revDig x 0
+
+revDig 0 y = y
+
+revDig x y = revDig (div x 10) (y * 10 + rem x 10)
+
+palindromes = [x * y | x <- [100..999], y <- [x..999], palindrome (x * y)]
+
+main = putStrLn (show (maximum factor))

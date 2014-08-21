@@ -1,0 +1,187 @@
+import random
+
+class Board:
+    def __init__(self, config=[[0, 0, 0, 0],
+                         [0, 0, 0, 0],
+                         [0, 0, 0, 0],
+                         [0, 0, 0, 0]]):
+        self.board = config
+    
+    def initialize(self):
+        """
+        Place two numbers on the board
+        """
+        self.insert()
+        self.insert()
+    
+    def insert(self, coord=None, tile=None):
+        """
+        Insert 2 or 4 to replace 0 on the board randomly or on the coord (r,c).
+        All 0s should have the same probability to receive a number.
+        4 is spawned by 10% chance, and otherwise 2 is spawned.
+        """
+        if coord is None:
+            emptyCoords = self.emptyTiles()
+            if not emptyCoords:  # no empty tiles
+                return False
+            coord = random.choice(emptyCoords)
+        
+        if tile is None:
+            tileTarget = [2, 2, 2, 2, 2, 2, 2, 2, 2, 4]
+            tile = random.choice(tileTarget)
+            
+        self.board[coord[0]][coord[1]] = tile
+        return True
+    
+    def emptyTiles(self):
+        """
+        Return the list of 0 tiles [(r1,c1), (r2,c2), ...]
+        """
+        coords = []
+        for r in range(4):
+            for c in range(4):
+                if not self.board[r][c]:
+                    coords.append((r, c))
+        return coords
+
+    def columnize(self):
+        """
+        for up and down functions. Putting all numbers in the same column into an array
+        for easier manipulation
+        """
+        columns = []
+        for i in range(4):
+            columns.append([row[i] for row in self.board])
+        self.board = columns
+        
+    def reverse(self):
+        """
+        reverse the left and right of the row
+        """
+        self.board = [row[::-1] for row in self.board]
+        
+    def left(self):
+        """
+        most basic swipe call
+        """
+        for row in self.board:
+            # combine from the left
+            for i in range(3):
+                if row[i] == row[i+1]:
+                    row[i] *= 2
+                    row[i+1] = 0
+            # remove all 0s
+            while True:
+                try:
+                    row.remove(0)
+                except ValueError:
+                    break
+            # then add 0s in the end
+            while len(row) < 4:
+                row.append(0)
+    
+    def right(self):
+        """
+        reverse, left, reverse
+        """
+        self.reverse()
+        self.left()
+        self.reverse()
+        
+    def up(self):
+        """
+        columnize, left, columnize
+        """
+        self.columnize()
+        self.left()
+        self.columnize()
+    
+    def down(self):
+        """
+        columnize, right, columnize
+        """
+        self.columnize()
+        self.right()
+        self.columnize()
+    
+    def moveBoard(self, direction):
+        """
+        Receive "up", "down", "left", "right" and update the board.
+        If it is not a valid move, return False.
+        Otherwise, return True to signal success.
+        """
+        if direction not in self.validMoves():
+            print("Move is not valid!")
+            return False
+        elif direction == "up":
+            self.up()
+        elif direction == "down":
+            self.down()
+        elif direction == "left":
+            self.left()
+        else:  # "right"
+            self.right()
+        self.insert()
+        return True
+    
+    def validMoves(self):
+        """
+        Return current valid moves in set
+        """
+        moves = self.validCheck("left", "right")
+        self.columnize()
+        moves = moves.union(self.validCheck("up", "down"))
+        self.columnize()
+        return moves
+
+    def validCheck(self, dir1, dir2):
+        """
+        Actual checking algorithm for valid moves
+        """
+        moves = set()
+        for row in self.board:
+            if row != [0, 0, 0, 0]:
+                if row[0] == row[1] != 0 or \
+                   row[1] == row[2] != 0 or \
+                   row[2] == row[3] != 0:
+                    moves.add(dir1)
+                    moves.add(dir2)
+                    break
+                if row[0] + row[1] == row[1] != 0 or \
+                   row[1] + row[2] == row[2] != 0 or \
+                   row[2] + row[3] == row[3] != 0:
+                    moves.add(dir1)
+                if row[0] + row[1] == row[0] != 0 or \
+                   row[1] + row[2] == row[1] != 0 or \
+                   row[2] + row[3] == row[2] != 0:
+                    moves.add(dir2)
+        return moves
+    
+    def printBoard(self):
+        """
+        Pretty-print the board
+        eg)
+        0    0    0    2
+        0    0    2    4
+        0    0    8    2
+        0    0    8   16
+        """
+        for row in self.board:
+            rowtext = ""
+            for column in row:
+                rowtext += str(column).rjust(6)
+            print(rowtext)
+        print("")  # for an empty line
+    
+    def max(self):
+        """
+        Return the max number achieved
+        """
+        return max(self.board[0] + self.board[1] + self.board[2] + self.board[3])
+    
+    def deepcopy(self):
+        """
+        Make a deep copy of itself.
+        """
+        newConfig = [row[:] for row in self.board]
+        return Board(newConfig)

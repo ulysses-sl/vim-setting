@@ -1,0 +1,14 @@
+def golden_age(arr)
+    last_idx = arr.count - 1
+    hash = {}
+    for i in 0..last_idx
+        for j in (i..last_idx)
+            hash[[i,j]] = arr[i..j+1].inject(:+)
+        end
+    results = []
+    hash.each do { |key, value| results<<key if value == hash.values.max }   end
+end
+
+a = [100, -101, 200, -3, 1000]
+
+golden_age(a)

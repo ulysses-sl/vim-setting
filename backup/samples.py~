@@ -1,0 +1,5 @@
+filename = "mi.txt"
+samples = open(filename, "r")
+for line in samples:
+    temp = line.split()
+    print("samples/" + filename[0] + "/" + filename[1] + "/" + temp[-1])

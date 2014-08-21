@@ -1,0 +1,10 @@
+def subsets(arr):
+    result = [[]]
+    for elem in arr:
+        print result
+        print elem
+        for sub in result[:]:
+        result = result + [sub + [elem] for sub in result[:]]
+    return result
+
+print subsets(["a", "b", "c"])

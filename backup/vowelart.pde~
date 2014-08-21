@@ -1,0 +1,341 @@
+import ddf.minim.*;
+import ddf.minim.analysis.*;
+import ddf.minim.effects.*;
+
+final double[] aProb = {
+  0.13454,
+  0.22845,
+  0.03626,
+  0.03903,
+  0.12027,
+  0.12047,
+  0.08738,
+  0.07430,
+  0.07549,
+  0.04379,
+  0.01209,
+  0.00416,
+  0.00218,
+  0.00218,
+  0.00456,
+  0.00436,
+  0.00416,
+  0.00258,
+  0.00099,
+  0.00159,
+  0.00079,
+  0.00198,
+  0.00020,
+  0.00020,
+  0.00099,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+};
+
+final double[] iProb = {
+  0.26511,
+  0.22984,
+  0.07391,
+  0.04300,
+  0.01407,
+  0.01090,
+  0.00753,
+  0.00476,
+  0.00614,
+  0.00357,
+  0.00337,
+  0.00733,
+  0.01506,
+  0.02298,
+  0.02477,
+  0.03685,
+  0.05112,
+  0.03329,
+  0.02913,
+  0.02397,
+  0.01803,
+  0.01248,
+  0.00357,
+  0.01149,
+  0.00852,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+};
+
+final double[] oProb = {
+  0.23876,
+  0.14543,
+  0.07787,
+  0.16544,
+  0.03923,
+  0.05924,
+  0.07331,
+  0.03725,
+  0.02457,
+  0.01526,
+  0.00852,
+  0.00337,
+  0.00614,
+  0.00713,
+  0.00911,
+  0.00971,
+  0.00832,
+  0.00515,
+  0.00396,
+  0.00178,
+  0.00416,
+  0.00357,
+  0.00079,
+  0.00436,
+  0.00119,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+  0.00020,
+};
+
+Minim minim;
+AudioInput mic;
+FFT fft;
+
+// set to a power-of-two number: 44100 * timeSize = windowSize)
+final int timeSize = 256;
+final int freqBands = 3;  // number of frequencies to record
+final int bandAll = timeSize * 2 + 1;
+final int bandLimit = timeSize * 3 / 32 + 1;
+
+double[] analysisArr;  // array to receive FFT result
+
+double pA, pI, pO;  // probability
+
+String answerString;  // to print out to the screen
+
+int[] findFourMax()  // find four indices with largest number in the array
+{
+  int arrSize = bandLimit;  // entire analysis array size
+  int curSize = arrSize;  // number of indices we're interested in
+  int[] answer = new int[freqBands];
+  int[] allIndices = new int[arrSize];  // to handle random indices
+  for (int i = 0; i < arrSize; i++)
+  {
+    allIndices[i] = i;
+  }
+  int n = 0;  // answer index
+  int temp;
+
+  for (int j = 0; j < freqBands; j++)
+  {
+    // then go through indices
+    int maxIndex = 0;
+    double maxnum = analysisArr[allIndices[0]];
+    for (int i = 0; i < curSize - 1; i++)
+    {
+      if (analysisArr[allIndices[i]] > maxnum && analysisArr[allIndices[i]] > analysisArr[allIndices[i]-1] && analysisArr[allIndices[i]] > analysisArr[allIndices[i]+1])
+      {
+        maxnum = analysisArr[allIndices[i]];
+        maxIndex = i;
+      }
+    }
+    //println(allIndices[maxIndex]);
+    //println(analysisArr[allIndices[maxIndex]]);
+    if (maxnum == 0)
+    {
+      while (n < freqBands)
+      {
+        answer[n++] = -1;
+      }
+      break;
+    }
+    else
+    {
+    answer[n++] = allIndices[maxIndex];
+    }
+    // then eliminate the index from the answer
+    temp = allIndices[curSize - 1];
+    allIndices[curSize - 1] = allIndices[maxIndex];
+    allIndices[maxIndex] = temp;
+    curSize--;
+  }
+  for (int i = 0; i < bandAll; i++)
+  {
+    analysisArr[i] = 0;
+  }
+  return answer;
+}
+
+double probA(int[] answer)
+{
+  double aa = 1;
+  for (int i = 0; i < bandLimit; i++)
+  {
+    boolean temp = false;
+    for (int j = 0; j < freqBands; j++)
+    {
+      temp = temp || (i == answer[j]);
+    }
+    if (temp)
+    {
+      aa *= aProb[i];
+    }
+    else
+    {
+      aa *= 1 - aProb[i];
+    }
+  }
+  return aa;
+}
+
+double probI(int[] answer)
+{
+  double ii = 1;
+  for (int i = 0; i < bandLimit; i++)
+  {
+    boolean temp = false;
+    for (int j = 0; j < freqBands; j++)
+    {
+      temp = temp || (i == answer[j]);
+    }
+    if (temp)
+    {
+      ii *= iProb[i];
+    }
+    else
+    {
+      ii *= 1 - iProb[i];
+    }
+  }
+  return ii;
+}
+
+double probO(int[] answer)
+{
+  double oo = 1;
+  for (int i = 0; i < bandLimit; i++)
+  {
+    boolean temp = false;
+    for (int j = 0; j < freqBands; j++)
+    {
+      temp = temp || (i == answer[j]);
+    }
+    if (temp)
+    {
+      oo *= oProb[i];
+    }
+    else
+    {
+      oo *= 1 - oProb[i];
+    }
+  }
+  return oo;
+}
+
+void adjustP()
+{
+  for (int i = 0; i < fft.specSize(); i++)
+  {
+    analysisArr[i] += fft.getBand(i);
+  }
+  // analyze first
+  int[] answer = findFourMax();
+  pA *= probA(answer);
+  pI *= probI(answer);
+  pO *= probO(answer);
+  double sum = pA + pI + pO;
+  pA = pA / sum;
+  pI = pI / sum;
+  pO = pO / sum;
+}
+
+void resetP()
+{
+  pA = 1;
+  pI = 1;
+  pO = 1;
+}
+
+void printResult()
+{
+  float fA = (float) pA;
+  float fI = (float) pI;
+  float fO = (float) pO;
+  if ((mic.mix.level() < 0.01))
+  {
+    println("X\n");
+    answerString = "X, with " + Integer.toString(0) + "% certainty";
+  }
+  else if (fA < 0.6 && fI < 0.6 && fO < 0.6)
+  {
+    println("?\n");
+    answerString = "?, with " + Integer.toString(0) + "% certainty";
+  }
+  else if (fA >= max(fI, fO))
+  {
+    println("A\n");
+    answerString = "A, with " + Integer.toString((int) (pA * 100)) + "% certainty";
+  }
+  else if (fI >= fO)
+  {
+    println("I\n");
+    answerString = "I, with " + Integer.toString((int) (pI * 100)) + "% certainty";
+  }
+  else
+  {
+    println("O\n");
+    answerString = "O, with " + Integer.toString((int) (pO * 100)) + "% certainty";
+  }
+}
+
+void delay(int wait_ms)
+{
+  int time = millis();
+  while (millis() - time < wait_ms);
+}
+
+int counter;
+
+void setup()
+{
+  size(500, 200);
+  textAlign(CENTER);
+  textSize(32);
+  answerString = "";
+
+  analysisArr = new double[bandAll];
+
+  minim = new Minim(this);
+  mic = minim.getLineIn(Minim.STEREO, timeSize);       
+
+  fft = new FFT(mic.bufferSize(), mic.sampleRate());
+  fft.forward(mic.mix);
+}
+
+void draw()
+{
+  background(0);
+  text(answerString, width/2, height/2);
+  adjustP();
+  counter++;
+  if (counter == 30)
+  {
+    counter = 0;
+    printResult();
+    resetP();
+  }
+  fft.forward(mic.mix);
+}

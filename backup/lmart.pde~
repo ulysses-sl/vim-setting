@@ -1,0 +1,198 @@
+import fisica.*;
+import de.voidplus.leapmotion.*;
+import gifAnimation.*;
+
+
+class FishingMeter
+{
+  float meter, r1, r2, r3, r4, r5, ratio, proximity;
+  FishingMeter()
+  {
+    meter = 0;
+    r1 = 50;
+    r2 = 42;
+    r3 = 31;
+    r4 = 22;
+    r5 = 13;
+    ratio = 0.65;
+    proximity = 0;
+  }
+
+  void reset()
+  {
+    meter = 0;
+    proximity = 0;
+  }
+
+  void cooldown()
+  {
+    if (proximity < 0)
+    {
+      proximity -= 1;
+    }
+  }
+
+  void heatup()
+  {
+    if (proximity < 255)
+    {
+      proximity += 1;
+    }
+  }
+
+  void display(float x, float y)
+  {
+    noFill();
+    strokeWeight(1);
+    for (int i = 0; i < 10; i++)
+    {
+      stroke(255 - (proximity / 10) * (i + 1));
+      arc(x + random(2), y + random(2), r1, ratio * r1, 0.1 + TWO_PI / 60 * (meter + i - 1), 0.1 + TWO_PI / 60 * (meter + i));
+      arc(x + random(2), y + random(2), r2, ratio * r2, TWO_PI / 70 * (meter + i - 1), TWO_PI / 70 * (meter + i));
+      arc(x + random(2), y + random(2), r3, ratio * r3, 0.3 + TWO_PI / 30 * (meter + i - 1), 0.3 + TWO_PI / 30 * (meter + i));
+      arc(x + random(2), y + random(2), r4, ratio * r4, 0.5 + TWO_PI / 40 * (meter + i - 1), 0.5 +TWO_PI / 40 * (meter + i));
+      arc(x + random(2), y + random(2), r5, ratio * r5, 0.6 + TWO_PI / 50 * (meter + i - 1), 0.6 + TWO_PI / 50 * (meter + i));
+    }
+    noStroke();
+    strokeWeight(1);
+    meter += TWO_PI / 50;
+  }
+}
+
+
+LeapMotion leap;
+
+FWorld world;
+FBox boat;
+
+FishingMeter meter;
+//PImage boatImg;
+Gif boatImg;
+PImage mountImg;
+PImage stoneImg;
+
+void setup()
+{
+  size(displayWidth, 700, P2D);
+  background(255);
+  fill(255);
+  noStroke();
+  
+  leap = new LeapMotion(this);
+
+  Fisica.init(this);
+  world = new FWorld();
+
+  world.setEdges();
+  world.left.setHeight(height * 3 / 4);
+  world.right.setHeight(height * 3 / 4);
+  world.top.setPosition(width / 2 - 100, height / 8 - 1);
+  world.bottom.setPosition(width / 2, height - height / 4 + 1);
+  
+  world.left.setFill(255);
+  world.right.setFill(255);
+  world.top.setFill(255);
+  world.bottom.setFill(255);
+  world.left.setStroke(255);
+  world.right.setStroke(255);
+  world.top.setStroke(255);
+  world.bottom.setStroke(255);
+
+  mountImg = loadImage("mount.gif");
+  stoneImg = loadImage("stone.gif");
+  mountImg.resize(width * 4 / 5, 0);
+  stoneImg.resize(width, 0);
+  world.top.attachImage(mountImg);
+  world.bottom.attachImage(stoneImg);
+  
+  world.setGravity(0, 0);
+
+  boat = new FBox(200, 80);
+  boat.setPosition(width/2, height/2);
+  world.add(boat);
+  //boatImg = loadImage("fishing.gif");
+  boatImg = new Gif(this, "fishing.gif");
+  boatImg.play();
+  boat.attachImage(boatImg);
+
+  meter = new FishingMeter();
+}
+
+void draw(){
+    background(255);
+    world.step();
+    world.draw();
+    // ...
+    int fps = leap.getFrameRate();
+
+
+    // ========= HANDS =========
+
+    for(Hand hand : leap.getHands()){
+
+        Finger  finger_index     = hand.getIndexFinger();
+
+        PVector finger_position   = finger_index.getPosition();
+
+        int     touch_zone        = finger_index.getTouchZone();
+        float   touch_distance    = finger_index.getTouchDistance();
+
+        float realX = 1.8 * finger_position.x - width / 2.1;
+        float realY = 4 * finger_position.y - height * 2.5;
+
+        switch(touch_zone){
+            case -1: // None
+                break;
+            case 0: // Hovering
+            case 1: // Touching
+                if (hand.isLeft())
+                  fill(255, 0, 0, 100);
+                else
+                  fill(0, 0, 255, 100);
+                ellipse(realX, realY, 10, 10);
+                if (abs(boat.getX() - realX) < 20 && abs(boat.getY() - realY) < 20)
+                {
+                  meter.heatup();
+                  meter.display(boat.getX() + 90, boat.getY() + 20);
+                }
+                else if (abs(boat.getX() - realX) < 70 && abs(boat.getY() - realY) < 70)
+                {
+                  meter.cooldown();
+                  boat.addForce(10 * (realX - boat.getX()), 10 * (realY - boat.getY()));
+                }
+                else
+                {
+                  meter.reset();
+                }
+                break;
+        }
+    }
+
+
+    // ========= DEVICES =========
+
+    for(Device device : leap.getDevices()){
+        float device_horizontal_view_angle = device.getHorizontalViewAngle();
+        float device_verical_view_angle = device.getVerticalViewAngle();
+        float device_range = device.getRange();
+    }
+
+}
+
+// ========= CALLBACKS =========
+
+void leapOnInit(){
+    // println("Leap Motion Init");
+}
+void leapOnConnect(){
+    // println("Leap Motion Connect");
+}
+void leapOnFrame(){
+    // println("Leap Motion Frame");
+}
+void leapOnDisconnect(){
+    // println("Leap Motion Disconnect");
+}
+void leapOnExit(){
+    // println("Leap Motion Exit");
+}

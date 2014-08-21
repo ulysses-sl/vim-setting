@@ -257,13 +257,8 @@ endif
 
 
 if exists("b:is_chicken") || exists("is_chicken")
-    syn match schemeChar oneline "#\\return"
-    syn match schemeChar oneline "#!eof"
-
     " multiline comment
     syntax region schemeMultilineComment start=/#|/ end=/|#/ contains=@Spell,schemeMultilineComment
-    syn region schemeSexpComment start="#;(" end=")" contains=schemeComment,schemeTempStruc
-    hi def link schemeSexpComment Comment
 
     syn match schemeOther "##[-a-z!$%&*/:<=>?^_~0-9+.@#%]\+"
     syn match schemeExtSyntax "#:[-a-z!$%&*/:<=>?^_~0-9+.@#%]\+"
@@ -299,9 +294,6 @@ if exists("b:is_chicken") || exists("is_chicken")
     " suggested by Alex Queiroz
     syn match schemeExtSyntax "#![-a-z!$%&*/:<=>?^_~0-9+.@#%]\+"
     syn region schemeString start=+#<#\s*\z(.*\)+ end=+^\z1$+ contains=@Spell
-
-    syn match schemeShebang "^#!/.*csi.*$"
-    hi def link schemeShebang Comment
 endif
 
 " Synchronization and the wrapping up...

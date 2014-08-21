@@ -1,0 +1,21 @@
+import os
+import core
+
+
+def main():
+    board = core.Board()
+    board.initialize()
+
+    onGame = board.validMoves()
+
+    while onGame:
+        os.system("tput reset")
+        board.printBoard()
+        validComm = False
+        while not validComm:
+            validComm = board.moveBoard(input())
+        onGame = board.validMoves()
+
+
+if __name__ == "__main__":
+    main()

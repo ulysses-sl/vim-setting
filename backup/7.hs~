@@ -1,0 +1,8 @@
+primesToGT m = 2 : sieve [3,5..m] where
+    sieve (p:xs) 
+        | p*p > m   = p : xs
+        | otherwise = p : sieve [x | x <- xs, rem x p /= 0]
+
+factor = [x | x <- primesToGT (floor (sqrt 600851475143)), 600851475143 `rem` x == 0]
+
+main = putStrLn (show (maximum factor))

@@ -1,0 +1,130 @@
+;;;
+;;; 2048.scm : 2048 game and AI solver
+;;; Copyright 2014 Sak Lee <mail@saklee.net> Some rights reserved.
+;;; Written in Chicken Scheme 4.8.0
+;;;
+;;; This program is made of three parts.
+;;; 1) Main game
+;;; 2) AI training & statistics
+;;; 3) AI 2048 solver
+;;; 
+;;; The core of AI is feature-based approximate Q-learning.
+;;; The reward and features are the following.
+;;; r) (sum (map log all-new-combo))
+;;; f1) # of aligned tiles
+;;; f2) sum of only one corner 3 tiles > sum of rest?
+;;; f3) if so, is the corner the highest?
+;;; f4) # of free tiles
+;;; f5) (log largest-fringe-num)
+;;;
+
+(use extras srfi-1 srfi-13 srfi-69 srfi-71)
+
+;;;
+;;; constants
+;;; 
+
+(define allMoves '(Up Left Down Right))
+
+(define moveKeys '("w" "a" "s" "d"))
+
+(define (keyToMove str)
+  (letrec
+    ((keyMoveMatch
+       (lambda (moves keys s)
+         (cond ((null? moves)
+                '())
+               ((equal? s (car keys))
+                (car moves))
+               (else
+                (keyMoveMatch (cdr moves) (cdr keys) s))))))
+    (keyMoveMatch allMoves moveKeys str)))
+
+;;; add a number to 0 tile
+(define (addNumber board num)
+  (letrec
+    ((addNumberRec
+       (lambda (board zeros)
+         (if (null? board)
+             (values '() (random zeroes))
+             (let ((newboard index (addNumberRec (cdr board) (+ zeros 1)))
+                   (origNum (car board)))
+               (cond ((> origNum 0)
+                      (values (cons origNum newboard)
+                              index))
+                     ((not (= index 0))
+                      (values (cons origNum newboard)
+                              (- index 1)))
+                     (else
+                      (values (cons (* 2 (+ 1 (random 2))) newboard)
+                              (- index 1)))))))))
+    (let ((brd x (addNumberRec board 0)))
+       brd)))
+
+;;; transforms the board into rows
+(define (boardToRow board)
+  (letrec
+    ((btrRec
+       (lambda (r1 r2 r3 r4 board count)
+         (case
+           ((> count 12)
+            (btrRec (cons (car board) r1) r2 r3 r4 (cdr board) (- count 1)))
+           ((> count 8)
+            (btrRec r1 (cons (car board) r2) r3 r4 (cdr board) (- count 1)))
+           ((> count 4)
+            (btrRec r1 r2 (cons (car board) r3) r4 (cdr board) (- count 1)))
+           ((> count 0)
+            (btrRec r1 r2 r3 (cons (car board) r4) (cdr board) (- count 1)))
+           (else
+            (values (reverse r1) (reverse r2) (reverse r3) (reverse r4)))))))
+    ((btrRec '() '() '() '() board 16))))
+
+;;; transforms the board into columns
+(define (boardToCol board)
+  (letrec
+    ((btcRec
+       (lambda (c1 c2 c3 c4 board count)
+         (case
+           ((null? board)
+            (values (reverse c1) (reverse c2) (reverse c3) (reverse c4)))
+           ((= (modulo count 4) 0)
+            (btrRec (cons (car board) c1) c2 c3 c4 (cdr board) (+ count 1)))
+           ((= (modulo count 4) 1)
+            (btrRec c1 (cons (car board) c2) c3 c4 (cdr board) (+ count 1)))
+           ((= (modulo count 4) 2)
+            (btrRec c1 c2 (cons (car board) c3) c4 (cdr board) (+ count 1)))
+           (else
+            (btrRec c1 c2 c3 (cons (car board) c4) (cdr board) (+ count 1)))))))
+    ((btcRec '() '() '() '() board 0))))
+
+;;; transforms the rows into a board
+(define rowToBoard flatten)
+
+;;; transforms the columns into a board
+(define (colToBoard c1 c2 c3 c4)
+  (if (null? c1)
+      '()
+      `(,(car c1) ,(car c2) ,(car c3) ,(car c4) . ,(colToBoard (cdr c1) (cdr c2) (cdr c3) (cdr c4)))))
+
+;;;
+;;; actual game
+;;;
+
+(define (game))
+
+;;;
+;;; main program
+;;;
+
+;;; for capturing continuation
+(define update #f)
+
+;;; main
+(define (main)
+  ())
+
+;;;
+;;; Main stub
+;;;
+
+(main)

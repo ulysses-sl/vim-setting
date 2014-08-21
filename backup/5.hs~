@@ -1,0 +1,22 @@
+factorize 0 = error "nope."
+
+factorize 1 = [1]
+
+factorize x = pfact : factorize (div x pfact)
+    where pfact = head [y | y <- [2..x], rem x y == 0]
+
+merge xs [] zs = xs ++ zs
+
+merge xs (y:ys) zs = merge (y:xs) ys (remove y zs)
+
+remove _ [] = []
+
+remove x (y:ys) = if x == y
+                then ys
+                else y : remove x ys
+
+factors = [factorize x | x <- [1..20]]
+
+factorsMerged = foldl (merge []) [] factors
+
+main = putStrLn (show (factorsMerged))

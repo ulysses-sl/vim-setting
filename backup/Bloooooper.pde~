@@ -1,0 +1,375 @@
+import processing.serial.*;
+import cc.arduino.*;
+Arduino arduino;
+
+class Thing {
+  float x;
+  float y;
+  int size;
+  color col;
+  
+  Thing() {
+    x = width/2;
+    y = 0;
+    size = 1;
+    col = color(0,0,0);
+  }
+}
+
+class Blooper extends Thing {
+  
+  float f, xv, yv, g, pow, max_pow, bloodpool1x, bloodpool1y, bloodpool2x, bloodpool2y, air;
+  boolean inJump, dead, bloody;
+  int deadcount;
+  PImage pg;
+
+  Blooper() {
+    x = 0;
+    y = floorHeight(x);
+    xv = 0;
+    yv = 0;
+    max_pow = 25;
+    pow = 0;
+    size = 100;
+    f = 1;
+    g = 1;
+    inJump = false;
+    dead = false;
+    bloody = false;
+    air = 10;
+  }
+  
+  void jump(float angle) {
+    if (!dead && !inJump){
+      xv = max_pow * cos(angle) * 0.5;
+      yv = max_pow * sin(angle);
+      inJump = true;
+    }
+  }
+  
+  void inWater(float x, float y) {
+    
+  }
+  
+  void display() {
+    air -= 0.5 / 60;
+    // jump code
+    if (dead) { xv = 0; }
+    if (inJump) {
+      x += xv / zoom;
+      y += yv / zoom;
+      yv -= g;
+      if (y <= floorHeight(x)) {
+        if (y >= floorHeight(x) + yv) {
+          y = floorHeight(x);
+          if (yv <= -60 && !(x >= 380 && x <= 480)) {
+            dead = true;
+            bloody = true;
+          }
+          yv = 0;
+          xv = 0;
+          inJump = false;
+        }
+        else {
+          xv *= -1;
+        }
+      }
+    }
+    pushMatrix();
+    translate(width / 3, height * 2 / 3);
+    if (inJump || 2 > random(10 * air)) { pg = loadImage("bloop4.png"); }
+    else { pg = loadImage("bloop3.png"); }
+    if (air <= 0) { dead = true; }
+    
+    float imgW = pg.width;
+    float imgH = pg.height;
+
+    boolean tailFlip = false;
+    if (mousePressed == true) {
+      tailFlip = true;
+    }
+    if (dead) {
+      deadcount += 1;
+      if (deadcount > 300) {
+        reset();
+      }
+      pg.filter(BLUR, 5);
+    }
+    if (bloody) {
+      fill(180, 0, 0, 200);
+      if (bloodpool1x < 70) {
+        bloodpool1x += 0.4;
+        bloodpool1y += 0.1;
+      }
+      if (bloodpool2x < 100) {
+        bloodpool2x += 0.5;
+        bloodpool2y += 0.12;
+      }
+      ellipse(-10 * zoom, 20 * zoom * imgH / imgW, bloodpool1x * zoom, bloodpool1y * zoom);
+      ellipse(20 * zoom, 10 * zoom * imgH / imgW, bloodpool2x * zoom, bloodpool2y * zoom);
+    }
+    imageMode(CENTER);
+    image(pg, 0, 0, 50 * zoom, 50 * zoom * imgH / imgW);
+    popMatrix(); 
+  }
+}
+
+class Knife extends Thing {
+  PShape pg;
+  boolean dropped;
+  Knife (float xpos, float ypos) {
+    pg = loadShape("knife.svg");
+    x = xpos;
+    y = ypos;
+  }
+  
+  void drop(Blooper blooper) {
+    if (x <= blooper.x + 30) { dropped = true; }
+  }
+  
+  void display(Blooper blooper) {
+    if (dropped) {
+      y -= 20;
+    }
+    if (y <= blooper.y + 30 && x >= blooper.x - 15 && x <= blooper.x + 15) {
+      blooper.dead = true;
+      blooper.bloody = true;
+      dropped = false;
+    }
+    if (y <= floorHeight(x)) {
+      dropped = false;
+    }
+    if (blooper.dead) {
+      y = blooper.y + 30;
+    }
+    if (x > blooper.x - width / zoom && x < blooper.x + width / zoom) {
+      shapeMode(CENTER);
+      shape(pg, (x - blooper.x) * zoom + width / 3, -(y - blooper.y) * zoom + height * 2 / 3);
+      shapeMode(CORNER);
+    }
+  }
+}
+
+class ZoomBG {
+  PShape bg;
+  PGraphics buffer;
+  float w, h;
+  
+  ZoomBG(String filename) {
+    bg = loadShape(filename);
+    buffer = createGraphics(width, height);
+    w = bg.width;
+    h = bg.height;
+  }
+  
+  void display(float x, float y, float zoom) {
+    buffer.beginDraw();
+    buffer.background(255);
+    buffer.shapeMode(CORNER);
+    //buffer.translate(x * zoom + width / 3 - 100 * zoom, y * zoom + blooper.y * zoom + 2 * height / 3 / (zoom * hh / height));
+    buffer.translate(x * zoom + -100 * zoom, y * zoom);
+    buffer.translate(width / 3, (blooper.y - 55) * zoom + 2 * height / 3);
+    buffer.shape(bg, 0, 0, zoom * w, zoom * h);
+    buffer.endDraw();
+    imageMode(CORNER);
+    image(buffer, 0, 0);
+  }
+}
+
+float floorHeight(float x) {
+  float y = 659;
+  if (x < -60) {return 400;}   // back wall
+  if (x < 28) {return 220;}    // fish tank
+  if (x <= 35) {return 275;}   // tank wall
+  if (x <= 100) {return 200;}  // table / chair arm
+  if (x <= 110) {return 193;}  // slope
+  if (x <= 210) {return 179;}  // chair seat
+  if (x <= 220) {return 193;}  // slope
+  if (x <= 310) {return 200;}  // chair arm
+  if (x <= 320) {return 223;}  // glass
+  if (x <= 350) {return 200;}  // water
+  if (x <= 360) {return 223;}  // glass
+  if (x <= 385) {return 190;}  // table
+  if (x <= 480) {return 115;}  // cushion
+  if (x <= 540) {return 85;}   // floor
+  if (x <= 610) {return 100;}  // book
+  if (x <= 675) {return 128;}  // book
+  if (x <= 685) {return 143;}  // book
+  if (x <= 755) {return 143 - (x - 685) / 3;}  // book slope
+  if (x <= 780) {return 100;}  // book
+  if (x <= 855) {return 95;}  // book
+  if (x <= 935) {return 105;}  // book
+  if (x <= 940) {return 105 + (x - 935) * 8;}  // book slope
+  if (x <= 985) {return 150;}  // book
+  if (x <= 1010) {return 135 + (x - 985) * 5 / 3;}  // book
+  if (x <= 1030) {return 160 - (x - 1010) * -1;}  // book
+  if (x <= 1080) {return 147;}  // book
+  if (x <= 1120) {return 105;}  // book
+  if (x <= 1150) {return 147;}  // book
+  if (x <= 1175) {return 170;}  // book
+  if (x <= 1200) {return 156;}  // book
+  if (x <= 1280) {return 173;}  // book
+  if (x <= 1330) {return 85;}  // floor
+  if (x <= 1390) {return 165;}  // chair
+  if (x <= 1530) {return 200;}  // table
+  if (x <= 1540) {return 230;}  // glass
+  if (x <= 1560) {return 200;}  // water
+  if (x <= 1570) {return 230;}  // glass
+  if (x <= 1680) {return 200;}  // table
+  if (x <= 1760) {return 200;}  // chair
+  if (x <= 1815) {return 85;}  // floor
+  if (x <= 1880) {return 230;}  // shelf
+  if (x <= 1940) {return 230;}  // bowl1
+  if (x <= 2000) {return 230;}  // bowl2
+  if (x <= 2050) {return 260;}  // green
+  if (x <= 2080) {return 230;}  // shelf
+  if (x <= 2130) {return 85;}  // floor
+  if (x <= 2150) {return 260;}  // counter
+  if (x <= 2280) {return 265;}  // board
+  if (x <= 2330) {return 260;}  // table
+  return 85;
+}
+
+class Stats {
+  PShape bubble;
+  float bubbleSize;
+  Stats() {
+    bubble = loadShape("watermark.svg");
+    bubbleSize = 30;
+  }
+  
+  void drawAir(float air) {
+    float y = 20;
+    for (int i = ceil(air); i > 0; i--) { drawBubble(width - 50, y + (ceil(air) - i) * bubbleSize * 4 / 5); }
+  }
+  
+  void drawBubble(float x, float y) {
+    pushMatrix();
+    translate(x, y);
+    shape(bubble, -1 + random(2), -1 + random(2), 20, 20);
+    popMatrix();
+  }
+  
+  void display() {
+    drawAir(blooper.air);
+  }
+}
+
+void title() {
+  if (titleScreen) {
+    zoom = 8 * height / hh;
+  }
+  
+}
+
+
+void reset() {
+  angle = 0;
+  jumping = false;
+  jumped = false;
+  zoom = 4 * height / hh;
+  blooper = new Blooper();
+  stats = new Stats();
+}
+
+PShape book;
+Stats stats;
+Blooper blooper;
+//Knife knife;
+ZoomBG bg;
+float zoom, ww, hh, bgx, bgy, flr, angle;
+boolean jumping, jumped, titleScreen;
+final int buttonPin = 13; // the number of the pushbutton pin
+int buttonState = 0; // variable for reading the pushbutton status
+
+void setup() {
+  size(1000, 500);
+  noStroke();
+  noCursor();
+  titleScreen = true;
+
+  println(Arduino.list());/*/
+  arduino = new Arduino(this, Arduino.list()[0], 57600);
+  arduino.pinMode(buttonPin, Arduino.INPUT);
+  arduino.digitalWrite(buttonPin, Arduino.HIGH);//*/
+
+  angle = 0;
+  jumping = false;
+  jumped = false;
+  bg = new ZoomBG("bg.svg");
+  ww = bg.w;
+  hh = bg.h;
+  flr = height / zoom;
+  zoom = 4 * height / hh;
+  blooper = new Blooper();
+  book = loadShape("book.svg");
+  //knife = new Knife(blooper.x, blooper.y + 2000);
+  stats = new Stats();
+  //knife.drop(blooper);
+}
+
+void draw(){
+  background(255);
+  bgx = -(blooper.x);
+  bgy = -(hh);
+  bg.display(bgx, bgy, zoom);
+  blooper.display();
+  //knife.display(blooper);
+  textSize(32);
+  fill(255, 0, 0);
+  //text(blooper.x, 50, height - 50);
+  stats.drawAir(blooper.air);
+  /*/
+  buttonState = arduino.digitalRead(buttonPin);
+  // check if the pushbutton is pressed.
+  // if it is, the buttonState is HIGH:
+  if (buttonState == Arduino.LOW) {
+    println("high!");
+    if (!jumped) {
+      jumping = true;
+    }
+  }
+  else {
+    //println("low!");
+    if (jumping && !jumped) {
+      blooper.jump(angle);
+    }
+    jumped = false;
+    jumping = false;
+    angle = 0;
+  }//*/
+  jump();
+}
+
+void jump() {
+  if (jumping) {
+    angle += HALF_PI / 30;
+    println(angle);
+    if (angle >= HALF_PI) {
+      jumping = false;
+      jumped = true;
+      blooper.jump(HALF_PI);
+      angle = 0;
+    }
+  }
+}
+
+void mousePressed() {
+  jumping = true;
+  jumped = false;
+}
+
+void mouseReleased() {
+  if (!jumped) {
+    blooper.jump(angle);
+  }
+  jumped = false;
+  jumping = false;
+  angle = 0;
+}
+
+// constants won't change. They're used here to
+// set pin numbers:
+
+
+// variables will change:

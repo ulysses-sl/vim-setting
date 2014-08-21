@@ -1,1 +1,1 @@
-let g:is_chicken=1
+let b:is_chicken=1

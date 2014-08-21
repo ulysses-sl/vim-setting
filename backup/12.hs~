@@ -1,0 +1,25 @@
+--factors :: (Integral a) => a -> [a]
+--factors x = [y | y <- [1..x], rem x y == 0] where
+
+maxPrimeFactor :: (Integral a, Integral c) => a -> c
+maxPrimeFactor = floor . sqrt . fromIntegral
+
+minPrimeFactor :: (Integral a) => a -> a -> a
+minPrimeFactor m x = head [y | y <- [m,(m+2)..maxPrimeFactor x], rem x y == 0]
+
+primeFactors :: (Integral a) => a -> a -> [a]
+primeFactors m 1 = []
+primeFactors m x = if rem x 2
+                 then 2 : primeFactors 2 (div x 2)
+                 else p : primeFactors p (div x p) where p = minPrimeFactor m x
+
+triangleNum :: (Integral a) => [a]
+triangleNum = tnum 0 [1..]
+
+tnum :: (Integral a) => a -> [a] -> [a]
+tnum x (y:ys) = (x + y) : tnum (x + y) ys
+
+triOverNDivisors :: (Integral a) => [a]
+triOverNDivisors = [x | x <- triangleNum, length (factors x) > 500]
+
+main = putStrLn (show (head (triOverNDivisors)))

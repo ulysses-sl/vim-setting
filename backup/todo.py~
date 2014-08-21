@@ -1,0 +1,40 @@
+from datetime import datetime
+import sqlite3
+import tkinter
+
+
+class TodoMain(tkinter.Frame):
+    def __init__(self, parent=None):
+        tkinter.Frame.__init__(self, parent, background="black")
+        self.parent = parent
+
+        self.initDB()
+        self.initUI()
+
+    def initDB(self):
+        self.connection = sqlite3.connect('todo.db')
+        self.cursor = self.connection.cursor()
+        self.cursor.execute(
+            """CREATE TABLE IF NOT EXISTS todo
+            (
+              id INTEGER PRIMARY KEY ASC,
+              due TEXT(20),
+              category_a TEXT(8),
+              category_b TEXT(8),
+              title TEXT(40),
+              detail BLOB
+            );""")
+        self.connection.commit()
+
+    def initUI(self):
+        self.parent.title("Todomatic")
+
+
+def main():
+    root = tkinter.Tk()
+    todomatic = TodoMain(root)
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

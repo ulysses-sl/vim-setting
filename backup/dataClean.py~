@@ -1,0 +1,83 @@
+import csv
+
+def dataCount(category, stream, data):
+    """
+    Receives a line of data and gets the total count.
+
+    In: category = an ordered list of tuple items to count
+            [(0,0,0), (0,1,0), ...]
+        stream = a list indicating which item to count
+            [(0,0,1), (1,1,0), (0,1,1) ...]
+        data = a list of single subject data
+            [0, 60, 1, 1, 0, 1, ...]
+    Out: a list containing clean sum data in order
+    """
+    totalCount = {}
+    for item in category:
+        totalCount[item] = 0
+
+    output = data[:3]  # Culture, ID, Presentation no.
+    actualData = data[3:]
+    for i in range(len(stream)):
+        if stream[i][1] == str(actualData[i]):
+            # Told truth & guessed truth, or
+            # Told lie & guessed lie
+            totalCount[stream[i]] += 1
+
+    for item in category:
+        output.append(totalCount[item])
+    return output
+
+""" This is the final order of the data. """
+dataOrder = [('0','0','0'), ('0','1','0'), ('0','0','1'), ('0','1','1'),
+             ('1','0','0'), ('1','1','0'), ('1','0','1'), ('1','1','1')]
+
+dataFiles = ['p1.csv', 'p2.csv', 'p3.csv', 'p4.csv']
+
+allData = []
+
+for f in dataFiles:
+    with open(f, newline='') as csvfile:
+        datareader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+
+        # holding first three lines
+        temp1, temp2, temp3 = [], [], []
+
+        # holding the zipped key of the first three lines
+        keyStream = []
+
+        counter = 0
+        for row in datareader:
+            data = row[0].split(',')
+            # collect first three lines
+            if counter == 0:
+                temp1 = data[3:]
+                print(temp1)
+                counter += 1
+            elif counter == 1:
+                temp2 = data[3:]
+                print(temp2)
+                counter += 1
+            elif counter == 2:
+                temp3 = data[3:]
+                print(temp3)
+                counter += 1
+            # then create a stream
+            elif counter == 3:
+                keyStream = list(zip(temp1, temp2, temp3))
+                # print(keyStream)
+                counter += 1
+            else:
+                allData.append(dataCount(dataOrder, keyStream, data))
+
+
+#for d in allData:
+    # print(d)
+
+
+with open('cleanData.csv', 'w+', newline='') as csvfile:
+    datawriter = csv.writer(csvfile, delimiter=' ',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    for d in allData:
+        e = list(map(str, d))
+        datawriter.writerow([','.join(e)])

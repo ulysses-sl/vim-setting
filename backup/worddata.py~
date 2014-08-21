@@ -1,0 +1,67 @@
+import string
+import scipy.stats as st
+import math
+
+def zscore(pop1, pop2, key, sum1, sum2):
+    p1 = pop1[key] / sum1
+    p2 = pop2[key] / sum2
+    p = (pop1[key] + pop2[key]) / (sum1 + sum2)
+    return (p1 - p2) / math.sqrt(p * (1 - p) * (1 / sum1 + 1 / sum2))
+
+filename1 = '09wd'#input("File 1 to process? ")
+filename2 = '10wd'#input("File 2 to process? ")
+
+alphabet = set(string.ascii_lowercase + string.ascii_uppercase)
+
+cleanData1 = {}
+cleanData2 = {}
+
+total1 = 0
+total2 = 0
+
+# Strip newline and match freq with word for analysis
+
+for line in open(filename1, 'r'):
+    line = line.rstrip('\n')
+    entry = line.split('\t')
+    count = int(entry[2])
+    if entry[1][0] in alphabet and count >= 10000:
+        cleanData1[entry[1]] = count
+        total1 += count
+
+for line in open(filename2, 'r'):
+    line = line.rstrip('\n')
+    entry = line.split('\t')
+    count = int(entry[2])
+    if entry[1][0] in alphabet and count >= 10000:
+        cleanData2[entry[1]] = count
+        total2 += count
+
+
+# account for the missing keys
+
+data1Keys = cleanData1.keys()
+data2Keys = cleanData2.keys()
+
+for key in data1Keys:
+    if key not in data2Keys:
+        cleanData2[key] = 0
+
+for key in data2Keys:
+    if key not in data1Keys:
+        cleanData1[key] = 0
+
+
+# count the difference
+
+dataZscore1 = {}
+dataZscore2 = {}
+for key in cleanData1.keys():
+    dataZscore1[key] = zscore(cleanData1, cleanData2, key, total1, total2)
+    dataZscore2[key] = 1 - dataZscore1[key]
+
+for key in dataZscore1.keys():
+    pval1 = st.norm.sf(dataZscore1[key]) * 2
+    pval2 = st.norm.sf(dataZscore2[key]) * 2
+    if pval1 < 0.05 or pval2 < 0.05:
+        print(key)
