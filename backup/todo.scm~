@@ -78,12 +78,6 @@
        (let* bind-t body ...)
        (let* bind-f body ...)))))
 
-(define-syntax let-cond
-  (syntax-rules ()
-    ((_ ((pred bind ...) . conds) body ...)
-     (if pred
-       (let (bind ...) (body ...))
-       (let-cond conds body ...)))))
 
 
 ;;; Expiration checker. Use alone or with time-24, time-3d, and time-1w
