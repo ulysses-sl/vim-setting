@@ -1,0 +1,17 @@
+1.
+Monitor signal() either unblocks a thread or does nothing. If nothing is blocked, then nothing happens. It does not carry on when something blocks later.
+
+Semaphore signal() may increase the semaphore variable which may...
+1) do nothing, if var is still < 0,
+2) unblock a thread if var == 0, or
+3) allow an additional future thread to pass without blocking, if nothing is blocked yet
+
+2.
+Spinlock basically hangs the CPU resource and waste it until the lock condition is satisfied. On MP systems a hang in one processor caused by a thread spinlock may be quickly resolved by another thread on another processor meeting the lock condition. However, in SP systems, unless there is a regular interval interrupt to take CPU resource out of that thread (cooperative scheduling gasp!), the core is hijacked by the thread forever. Even if regular interrupt and preemptive scheduling allows other threads to run, it is still a lot of waste in computing power resource and very inefficient.
+
+3.
+I think it works. It lessens the degree of blocking at this junction (which makes threads more sequential than concurrent, since the prev version requires everyone to give and take mutex lock among each other, but the new version allows immediate entry as long as the pipe is not closed).
+
+4.
+a) One(notEmpty). Producer signals notEmpty at the end, and Consumer waits for the notEmpty signal if the buffer length is 0.
+b) Producer is not blocked at all.

@@ -1,0 +1,73 @@
+-- Q1 --
+
+-- <= relation is reflexive, antisymmetric, transitive
+-- so declaring <= is enough because it provides closure
+data T a = L Int | B (T a) (T a) deriving (Eq, Show)
+data T2 a = L2 Int | B2 (T2 a) (T2 a) deriving (Ord, Eq, Show)
+
+data BT a = E | BT (BT a, Int, BT a) deriving (Eq, Show)
+data BT2 a = E2 | BT2 (BT2 a, Int, BT2 a) deriving (Ord, Eq, Show)
+
+instance (Ord a) => Ord (T a) where
+    L a <= L b = a <= b
+    L a <= _ = True
+    _ <= L a = False
+    B a b <= B c d = (a <= c) || (b <= d)
+
+instance (Ord a) => Ord (BT a) where
+    E <= E = True
+    E <= _ = True
+    _ <= E = False
+    BT (a,b,c) <= BT (d,e,f) = (b < e) || (a <= d) || (c <= f)
+
+tval0 = B (L 3) (L 1)
+tval1 = B (B (L 3) (L 1)) (L 4)
+tval2 = B (B (L 3) (L 4)) (L 4)
+
+btval0 = BT (BT (E,4,E), 3, BT(E,8,E))
+btval1 = BT (BT (E,5,E), 3, BT(E,7,E))
+btval2 = BT(E,3,E)
+
+ttval0 = B2 (L2 3) (L2 1)
+ttval1 = B2 (B2 (L2 3) (L2 1)) (L2 4)
+ttval2 = B2 (B2 (L2 3) (L2 4)) (L2 4)
+
+-- Both instance and derived gives similar result in terms of rule.
+
+
+-- Q2 --
+{-
+instance Functor T where
+    fmap f (L a) = L (f a)
+    fmap f (B a b) = B (fmap f a) (fmap f b)
+
+instance Functor BT where
+    fmap f E = E
+    fmap f (BT (a,b,c)) = BT ((fmap f a),(f b),(fmap f c))
+-}
+-- due to some unfortunate bug I could not test it
+
+
+-- Q3 --
+class Monoid a where
+    bin :: (a -> a -> a) -> a -> a -> a
+    idM :: a -> a
+
+instance Monoid Integer where
+    bin op x y = (op) x y
+    idM e = e
+
+monext f b e [] = e
+monext f b e (x:xs) = bin b (f x) (monext f b e xs)
+
+triple x = 3 * x
+{-
+*Main> monext triple (*) 1 [3,4,5]
+1620
+-}
+
+monext (f,b,e) [] = idM e
+monext (f,b,e) (x:xs) = bin b (f x) (monext f b e xs)
+
+
+-- Q5 --

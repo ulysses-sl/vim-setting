@@ -1,0 +1,45 @@
+import random
+
+word1 = None
+word2 = None
+wordDict = {}
+
+def registerWord(word):
+    global word1, word2
+    if (word1, word2) not in wordDict.keys():
+        wordDict[(word1, word2)] = []
+    wordDict[(word1, word2)].append(word)
+    #word1 = word2
+    word2 = word
+
+for line in open("sonnets.txt", "r"):
+    line = line.split()
+    if not line:
+        pass
+    elif line[0][0] in "0123456789":
+        word1 = None
+        word2 = None
+    else:
+        for word in line:
+            registerWord(word)
+
+word1 = None
+word2 = None
+word = " "
+
+sentence = []
+
+def chooseNextWord():
+    global word1, word2, word
+    word = random.choice(wordDict[(word1, word2)])
+    #word1 = word2
+    word2 = word
+
+while word[-1] not in ".?!":
+    chooseNextWord()
+    if word1 is not None and word[0] in "ABCDEFGHJKLMNOPQRSTUVWXYZ":
+        sentence.append("\n" + word)
+    else:
+        sentence.append(word)
+
+print(" ".join(sentence))

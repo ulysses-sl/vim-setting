@@ -1,0 +1,7 @@
+for line in open("3000.txt", "r"):
+    words = line.split()
+    i = 0
+    while words[i][0] != "(":
+        i += 1
+    words = words[0:i]
+    print(" ".join(words))

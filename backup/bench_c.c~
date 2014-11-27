@@ -1,0 +1,42 @@
+#include <stdio.h>
+#include <sys/types.h>
+#include <time.h>
+/*
+float f_c(int n){
+    float s = 0;
+    float i;
+    for(i = 0; i < n; i += 4) {
+        s += i / 2;
+        s += (i + 1) / 2;
+        s += (i + 2) / 2;
+        s += (i + 3) / 2;
+    }
+    return s;
+}
+*/
+
+float f_c(int n){
+    int s = 0;
+    int i;
+    for(i = 0; i < n; i += 4) {
+        s += i;
+        s += (i + 1);
+        s += (i + 2);
+        s += (i + 3);
+    }
+    return s / 2.0;
+}
+
+void main( int argn, char* argv[]){
+    clock_t begin, end;
+    double time_spent;
+
+    int n = 1000000;//atoi( argv[1]);
+    begin = clock();
+    float s = f_c( n);
+    end = clock();
+    time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+
+    printf("elapsed time: %f seconds\n", time_spent);
+    printf("%f\n", s);
+}

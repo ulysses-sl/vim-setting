@@ -4,10 +4,6 @@
 ;;
 ;; This file is licensed under the terms of the GNU General Public
 ;; License as distributed with Emacs (press C-h C-c for details).
-;;
-;; Modified for Slimv:
-;; - load options
-;; - restart swank server in a loop
 
 ;;;; Installation:
 #|
@@ -67,9 +63,6 @@
 4. Start everything with `M-x mit-scheme'.
 
 |#
-
-(load-option 'format)
-(load-option 'sos)
 
 ;;; package: (swank)
 
@@ -427,10 +420,11 @@
 (define (swank:operator-arglist socket name pack)
   (let ((v (ignore-errors
 	    (lambda ()
-	      (with-output-to-string 
-		(lambda ()
-		  (carefully-pa 
-		   (eval (read-from-string name) (user-env pack)))))))))
+              (string-trim-right
+               (with-output-to-string
+                 (lambda ()
+                   (carefully-pa
+                    (eval (read-from-string name) (user-env pack))))))))))
     (if (condition? v) 'nil v)))
 
 (define (carefully-pa o)
@@ -900,10 +894,5 @@
   ;;(apply format log-port fstring args)
   #f
   )
-
-;; Restart swank server in an infinite loop
-(let loop ()
-  (swank 4005)
-  (loop))
 
 ;;; swank-mit-scheme.scm ends here

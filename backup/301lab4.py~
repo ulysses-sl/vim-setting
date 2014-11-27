@@ -1,0 +1,27 @@
+from datetime import datetime
+
+def currentTime():
+    now = datetime.now()
+    return str(now.hour) + ":" + str(now.minute) + ":" + str(now.second)
+
+timeCounter = []
+
+command = "0"
+
+while "4" not in command:
+    command = input()
+    if "1" in command:
+        timeCounter.append([currentTime(), "a", "a"])
+    if "2" in command:
+        for person in timeCounter:
+            if person[1] == "a":
+                person[1] = currentTime()
+                break
+    if "3" in command:
+        for person in timeCounter:
+            if person[2] == "a":
+                person[2] = currentTime()
+                break
+
+for person in timeCounter:
+    print(person)

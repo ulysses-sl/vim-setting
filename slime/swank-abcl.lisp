@@ -52,19 +52,19 @@
   nil)
 
 (defun specializer-direct-methods (spec)
-  (mop::class-direct-methods spec))
+  (mop:class-direct-methods spec))
 
 (defun slot-definition-name (slot)
-  (mop::%slot-definition-name slot))
+  (mop:slot-definition-name slot))
 
 (defun class-slots (class)
   (mop:class-slots class))
 
 (defun method-generic-function (method)
-  (mop::%method-generic-function method))
+  (mop:method-generic-function method))
 
 (defun method-function (method)
-  (mop::%method-function method))
+  (mop:method-function method))
 
 (defun slot-boundp-using-class (class object slotdef)
   (declare (ignore class))
@@ -80,47 +80,49 @@
    standard-slot-definition ;;dummy
    cl:method
    cl:standard-class
-   #+#.(swank-backend:with-symbol 'compute-applicable-methods-using-classes 'mop)
-   mop::compute-applicable-methods-using-classes
+   #+#.(swank-backend:with-symbol 'compute-applicable-methods-using-classes 
+         'mop)
+   mop:compute-applicable-methods-using-classes
    ;; standard-class readers
-   mop::class-default-initargs
-   mop::class-direct-default-initargs
-   mop::class-direct-slots
-   mop::class-direct-subclasses
-   mop::class-direct-superclasses
-   mop::eql-specializer
-   mop::class-finalized-p 
+   mop:class-default-initargs
+   mop:class-direct-default-initargs
+   mop:class-direct-slots
+   mop:class-direct-subclasses
+   mop:class-direct-superclasses
+   mop:eql-specializer
+   mop:class-finalized-p 
+   mop:finalize-inheritance
    cl:class-name
-   mop::class-precedence-list
+   mop:class-precedence-list
    class-prototype ;;dummy
    class-slots
    specializer-direct-methods 
    ;; eql-specializer accessors
    mop::eql-specializer-object
    ;; generic function readers
-   mop::generic-function-argument-precedence-order
+   mop:generic-function-argument-precedence-order
    generic-function-declarations ;;dummy
-   mop::generic-function-lambda-list
-   mop::generic-function-methods
-   mop::generic-function-method-class
-   mop::generic-function-method-combination
-   mop::generic-function-name
+   mop:generic-function-lambda-list
+   mop:generic-function-methods
+   mop:generic-function-method-class
+   mop:generic-function-method-combination
+   mop:generic-function-name
    ;; method readers
    method-generic-function
    method-function
-   mop::method-lambda-list
-   mop::method-specializers
-   mop::method-qualifiers
+   mop:method-lambda-list
+   mop:method-specializers
+   mop:method-qualifiers
    ;; slot readers
-   mop::slot-definition-allocation
+   mop:slot-definition-allocation
    slot-definition-documentation ;;dummy
-   mop::slot-definition-initargs
-   mop::slot-definition-initform
-   mop::slot-definition-initfunction
+   mop:slot-definition-initargs
+   mop:slot-definition-initform
+   mop:slot-definition-initfunction
    slot-definition-name
    slot-definition-type ;;dummy
-   mop::slot-definition-readers
-   mop::slot-definition-writers
+   mop:slot-definition-readers
+   mop:slot-definition-writers
    slot-boundp-using-class
    slot-value-using-class
    ))
@@ -191,7 +193,8 @@
 
 (defvar *external-format-to-coding-system*
   '((:iso-8859-1 "latin-1" "iso-latin-1" "iso-8859-1")
-    ((:iso-8859-1 :eol-style :lf) "latin-1-unix" "iso-latin-1-unix" "iso-8859-1-unix")
+    ((:iso-8859-1 :eol-style :lf) 
+     "latin-1-unix" "iso-latin-1-unix" "iso-8859-1-unix")
     (:utf-8 "utf-8")
     ((:utf-8 :eol-style :lf) "utf-8-unix")
     (:euc-jp "euc-jp")
@@ -256,7 +259,8 @@
               (sys::arglist fun)
             (when (and (not present)
                        (fboundp fun)
-                       (typep (symbol-function fun) 'standard-generic-function))
+                       (typep (symbol-function fun) 
+                              'standard-generic-function))
               (setq arglist
                     (mop::generic-function-lambda-list (symbol-function fun))
                     present
@@ -295,7 +299,7 @@
 
 (defimplementation describe-definition (symbol namespace)
   (ecase namespace
-    (:variable 
+    ((:variable :macro)
      (describe symbol))
     ((:function :generic-function)
      (describe (symbol-function symbol)))
@@ -362,7 +366,15 @@
                 stream))
 
 (defimplementation frame-locals (index)
-  `(,(list :name "??" :id 0 :value "??")))
+ (loop 
+    :with name = "??"
+    :for id :upfrom 0
+    :for value :in (java:jcall "toLispList" (nth-frame index))
+    :collecting  (list :name name :id id :value value)))
+
+(defimplementation frame-var-value (index id)
+ (elt (java:jcall "toLispList" (nth-frame index)) id))
+
 
 #+nil
 (defimplementation disassemble-frame (index)
@@ -411,24 +423,23 @@
     ;; filter condition signaled more than once.
     (unless (member condition *abcl-signaled-conditions*) 
       (push condition *abcl-signaled-conditions*) 
-      (signal (make-condition
-               'compiler-condition
-               :original-condition condition
-               :severity :warning
-               :message (format nil "~A" condition)
-               :location (cond (*buffer-name*
-                                (make-location 
-                                 (list :buffer *buffer-name*)
-                                 (list :offset *buffer-start-position* 0)))
-                               (loc
-                                (destructuring-bind (file . pos) loc
-                                  (make-location
-                                   (list :file (namestring (truename file)))
-                                   (list :position (1+ pos)))))
-                               (t  
-                                (make-location
-                                 (list :file (namestring *compile-filename*))
-                                 (list :position 1)))))))))
+      (signal 'compiler-condition
+              :original-condition condition
+              :severity :warning
+              :message (format nil "~A" condition)
+              :location (cond (*buffer-name*
+                               (make-location 
+                                (list :buffer *buffer-name*)
+                                (list :offset *buffer-start-position* 0)))
+                              (loc
+                               (destructuring-bind (file . pos) loc
+                                 (make-location
+                                  (list :file (namestring (truename file)))
+                                  (list :position (1+ pos)))))
+                              (t  
+                               (make-location
+                                (list :file (namestring *compile-filename*))
+                                (list :position 1))))))))
 
 (defimplementation swank-compile-file (input-file output-file
                                        load-p external-format
@@ -572,7 +583,7 @@
 ;; (find-file-in-path "java/lang/String.java" *source-path*)
 ;; (find-file-in-path "Lisp.java" *source-path*)
 
-;; Try fo find FILENAME in PATH.  If found, return a file spec as
+;; Try to find FILENAME in PATH.  If found, return a file spec as
 ;; needed by Emacs.  We also look in zip files.
 (defun find-file-in-path (filename path)
   (labels ((try (dir)
@@ -592,6 +603,7 @@
                  if (try dir) return it)))))
 
 (defimplementation find-definitions (symbol)
+  (ext:resolve symbol)
   (let ((srcloc (source-location symbol)))
     (and srcloc `((,symbol ,srcloc)))))
 
@@ -629,22 +641,25 @@ part of *sysdep-pathnames* in swank.loader.lisp.
       ,@(if parts
            (loop :for (label . value) :in parts
               :appending (label-value-line label value))
-            (list "No inspectable parts, dumping output of CL:DESCRIBE:" '(:newline) 
+           (list "No inspectable parts, dumping output of CL:DESCRIBE:" 
+                 '(:newline) 
                   (with-output-to-string (desc) (describe o desc)))))))
 
 (defmethod emacs-inspect ((slot mop::slot-definition))
-  `("Name: " (:value ,(mop::%slot-definition-name slot))
-             (:newline)
-             "Documentation:" (:newline)
-             ,@(when (slot-definition-documentation slot)
-                     `((:value ,(slot-definition-documentation slot)) (:newline)))
-             "Initialization:" (:newline)
-             "  Args: " (:value ,(mop::%slot-definition-initargs slot)) (:newline)
-             "  Form: "  ,(if (mop::%slot-definition-initfunction slot)
-                              `(:value ,(mop::%slot-definition-initform slot))
-                              "#<unspecified>") (:newline)
-                              "  Function: " (:value ,(mop::%slot-definition-initfunction slot))
-                              (:newline)))
+  `("Name: " 
+    (:value ,(mop:slot-definition-name slot))
+    (:newline)
+    "Documentation:" (:newline)
+    ,@(when (slot-definition-documentation slot)
+            `((:value ,(slot-definition-documentation slot)) (:newline)))
+    "Initialization:" (:newline)
+    "  Args: " (:value ,(mop:slot-definition-initargs slot)) (:newline)
+    "  Form: "  ,(if (mop:slot-definition-initfunction slot)
+                     `(:value ,(mop:slot-definition-initform slot))
+                     "#<unspecified>") (:newline)
+                     "  Function: " 
+                     (:value ,(mop:slot-definition-initfunction slot))
+                     (:newline)))
 
 (defmethod emacs-inspect ((f function))
   `(,@(when (function-name f)
@@ -652,10 +667,13 @@ part of *sysdep-pathnames* in swank.loader.lisp.
               ,(princ-to-string (function-name f)) (:newline)))
       ,@(multiple-value-bind (args present) 
                              (sys::arglist f)
-                             (when present `("Argument list: " ,(princ-to-string args) (:newline))))
+                             (when present 
+                               `("Argument list: " 
+                                 ,(princ-to-string args) (:newline))))
       (:newline)
       #+nil,@(when (documentation f t)
-                   `("Documentation:" (:newline) ,(documentation f t) (:newline)))
+                   `("Documentation:" (:newline) 
+                                      ,(documentation f t) (:newline)))
       ,@(when (function-lambda-expression f)
               `("Lambda expression:" 
                 (:newline) ,(princ-to-string
@@ -666,20 +684,21 @@ part of *sysdep-pathnames* in swank.loader.lisp.
 ;;; case, so make its computation a user interaction.
 (defparameter *to-string-hashtable* (make-hash-table))
 (defmethod emacs-inspect ((o java:java-object))
-    (let ((to-string (lambda ()
-                      (handler-case
-                          (setf (gethash o *to-string-hashtable*)
-                                         (java:jcall "toString" o))
-                        (t (e)
-                          (setf (gethash o *to-string-hashtable*)
-                                         (format nil "Could not invoke toString(): ~A"
-                                                 e)))))))
-      (append
-       (if (gethash o *to-string-hashtable*)
-           (label-value-line "toString()" (gethash o *to-string-hashtable*))
-           `((:action "[compute toString()]" ,to-string) (:newline)))
-       (loop :for (label . value) :in (sys:inspected-parts o)
-          :appending (label-value-line label value)))))
+  (let ((to-string (lambda ()
+                     (handler-case
+                         (setf (gethash o *to-string-hashtable*)
+                               (java:jcall "toString" o))
+                       (t (e)
+                         (setf (gethash o *to-string-hashtable*)
+                               (format nil 
+                                       "Could not invoke toString(): ~A"
+                                       e)))))))
+    (append
+     (if (gethash o *to-string-hashtable*)
+         (label-value-line "toString()" (gethash o *to-string-hashtable*))
+         `((:action "[compute toString()]" ,to-string) (:newline)))
+     (loop :for (label . value) :in (sys:inspected-parts o)
+      :appending (label-value-line label value)))))
 
 ;;;; Multithreading
 
@@ -763,3 +782,4 @@ part of *sysdep-pathnames* in swank.loader.lisp.
 
 (defimplementation quit-lisp ()
   (ext:exit))
+

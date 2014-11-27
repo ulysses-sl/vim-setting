@@ -1,0 +1,78 @@
+-- Q1 --
+data Point2 a = Pt2 (Int, Int) deriving (Read, Show, Eq)
+
+pointsum :: (Point2 a, Point2 a) -> Point2 a
+pointsum ((Pt2 (a, b)), (Pt2 (c, d))) = Pt2 (a + c, b + d)
+
+showpoint :: Point2 a -> (Int, Int)
+showpoint (Pt2 (a, b)) = (a, b)
+
+
+-- Q2 --
+data BT a = E | BT (BT a, Int, BT a) deriving (Eq, Show)
+
+sumTree E = 0
+sumTree (BT (a, b, c)) = (sumTree a) + b + (sumTree c)
+
+buildBT 0 = E
+buildBT 1 = BT (E, 1, E)
+buildBT n = BT (buildBT (n-1), n, buildBT (n-2))
+
+buildBT2 0 = E
+buildBT2 n = BT (buildBT2 (n-1), n, buildBT2 (n-1))
+
+
+-- Q3 --
+infixBT E = []
+infixBT (BT (a, b, c)) = infixBT a ++ [b] ++ infixBT c
+
+-- infixBT (buildBT 4)
+-- [1,2,3,1,4,1,2]
+-- infixBT (buildBT2 4)
+-- [1,2,1,3,1,2,1,4,1,2,1,3,1,2,1]
+
+
+-- Q4 --
+value = [x+y*y | x <- [1..5], y <- [1..3]]
+
+
+-- Q5 --
+-- map (+) [1,2,3] :: Num a => [a -> a]
+-- computes a list of functions that each add 1, 2, 3.
+-- equivalent to [(1 + ), (2 + ), (3 + )]
+listeval [] x = []
+listeval (f:fs) x = [f x] ++ listeval fs x
+
+
+-- Q6 --
+newcurry f = (\x -> (\y -> f (x,y)))
+
+newuncurry f = (\x -> f (fst x) (snd x))
+
+add (x,y) = x + y
+
+add2 x y = x + y
+
+
+-- Q7 --
+itWorks = a && b && c && d
+    where a = length "qwer" == 4
+          b = head "qwer" == 'q'
+          c = tail "qwer" == "wer"
+          d = "qwer" ++ "asdf" == "qwerasdf"
+
+-- not completely polymorphic! polymorphic on Ord
+merge [] ys = ys
+merge xs [] = xs
+merge (x:xs) (y:ys) = if x <= y then x:(merge xs (y:ys)) else y:(merge (x:xs) ys)
+
+itWorks2 = merge "abce" "acdf" == "aabccdef"
+
+
+-- Q8 --
+firstc x y = x
+
+firstu (x,y) = x
+
+-- both firstc 1 [1..] and firstu (1,[1..]) returns 1 without infinite loop.
+-- the type signature of the second argument does not matter

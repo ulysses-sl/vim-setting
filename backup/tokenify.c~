@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char** tokenify(const char *s) {
+    int len = strlen(s);
+
+    // token position and length flag
+    int* token_flag = malloc((len + 1) * sizeof(int));
+    int token_count = 0; // the total num of tokens
+    int counter = 0;    // temp counter for token length
+
+    // marks beginning of each token with token length
+    for (int i = len - 1; i >= 0; i--) {
+        if (!isspace(s[i])) { counter++;}
+
+        if (counter > 0 && (i == 0 || isspace(s[i-1]))) {
+            token_flag[i] = counter;
+            counter = 0;
+            token_count++;
+        }
+        else {
+            token_flag[i] = 0;
+        }
+    }
+
+    // the tokens to return
+    char** tokens = malloc((token_count + 1) * sizeof(char*));
+
+    int j = 0;
+
+    // assign tokens for each token pointer
+    for (int i = 0; i < token_count; i++) {
+        while (token_flag[j] < 1) { j++; }
+        int token_len = token_flag[j];  // length of each token
+
+        tokens[i] = malloc((token_len + 1) * sizeof(char));
+
+        for (int lcount = 0; lcount < token_len; lcount++) {
+            tokens[i][lcount] = s[j];
+            j++;
+        }
+        tokens[i][token_len] = '\0';
+    }
+
+    tokens[token_count] = NULL;
+
+    return tokens;
+}
+
+
+#ifndef AUTOTEST
+void print_tokens(char *tokens[]) {
+    int i = 0;
+    while (tokens[i] != NULL) {
+        printf("Token %d: %s\n", i+1, tokens[i]);
+        i++;
+    }
+}
+
+void free_tokens(char **tokens) {
+    int i = 0;
+    while (tokens[i] != NULL) {
+        free(tokens[i]); // free each string
+        i++;
+    }
+    free(tokens); // then free the array
+}
+
+int main() {
+    const char *tmp1 = "go red sox";
+    char **results = tokenify(tmp1);
+    print_tokens(results);
+    free_tokens(results);
+    const char *tmp2 = " another\nexample\t  to test    with\n";
+    results = tokenify(tmp2);
+    print_tokens(results);
+    free_tokens(results);
+    return 0;
+}
+#endif

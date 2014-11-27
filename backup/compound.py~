@@ -1,11 +1,12 @@
 import math
+import sys
 
-yearlyIncome = 100000
+yearlyIncome = 120000
 
 interest = 0.08
 workYears = 30
 offYears = 35
-yearlyExpense = 50000
+yearlyExpense = 60000
 
 totalSaving = offYears * yearlyExpense
 
@@ -18,6 +19,8 @@ while estimatedSaving < totalSaving:
     monthlySaving += 1
     estimatedSaving = monthlySaving * \
             sum([((1 + interest / 12) ** (i+1)) for i in range(workMonth)])
+
+sys.call("tput reset")
 
 print("If your yearly income is $" + str(yearlyIncome) + ", your monthly wage would be $" + str(math.floor(yearlyIncome / 12)) + ".")
 print("Let's assume the yearly economic growth is " + str(interest * 100) + "%,")

@@ -1,0 +1,149 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <time.h>
+#include <assert.h>
+
+
+bool in_string(char c, const char *str);
+bool check_answer(char c, const char *word, char *blank);
+
+/*
+ * Be happy you didn't have to write this function.
+ * Prints a low-tech ASCII gallows.  Max number of misses
+ * is 7 (i.e., if there are 7 misses, the player loses and
+ * the poor sap gets hung).  
+ */
+void print_gallows(int num_missed) {
+    // make sure that we got called in a reasonable way
+    assert(num_missed >= 0 && num_missed <= 7);
+
+    printf("\n\n       |||========|||\n");
+    if (num_missed > 0) {
+        printf ("       |||         |\n");
+    } else {
+        printf ("       |||          \n");
+    }
+
+    if (num_missed > 1) {
+        printf ("       |||         O\n");
+    } else {
+        printf ("       |||          \n");
+    }
+
+    if (num_missed > 2) {
+        if (num_missed > 4) {
+            printf ("       |||        /|\\\n");
+        } else if (num_missed > 3) {
+            printf ("       |||        /| \n");
+        } else {
+            printf ("       |||        /  \n");
+        }
+    } else {
+        printf ("       |||           \n");
+    }
+
+    if (num_missed > 5) {
+        if (num_missed > 6) {
+            printf ("       |||        / \\\n");
+        } else {
+            printf ("       |||        /  \n");
+        }
+    } else {
+        printf ("       |||           \n");
+    }
+
+    printf ("       |||\n");
+    printf ("       |||\n");
+    printf ("     =================\n\n");
+}
+
+/*
+ * Play one game of Hangperson.  The secret word is passed as a
+ * parameter.  The function should return true if the player won,
+ * and false otherwise.
+ */
+bool one_game(const char *word) {
+    int len = strlen(word);
+    int num_missed = 0;
+    char input[255] = ""; // str to receive input. 255 length for BO-proofness
+    char blank[len + 1];  // blank to fill in
+    char misses[8] = "";  // indicator for failed 
+
+    for (int i = 0; i < len; i++) { blank[i] = '_'; }
+    blank[len] = '\0';  // initialize the blanks with underscore
+
+    while (1) {
+        printf("Correct guesses: %s\n\n", blank);
+        printf("Misses: %s\n\n", misses);
+
+        print_gallows(num_missed);
+
+        if (num_missed == 7) {
+            printf("** You have lost, mortal. The word was %s. **\n", word);
+            return false;
+        }
+        if (strcmp(word, blank) == 0) {
+            printf("** You have won, mortal. **\n");
+            return true;
+        }
+
+        scanf("%s", input);
+
+        if (input[0] > 'Z') { input[0] -= 32; }  // fold case
+            
+        if (strlen(input) == 1 && (input[0] >= 'A' || input[0] <= 'Z')) {
+            if (!in_string(input[0], blank) &&
+                !in_string(input[0], misses) &&
+                !check_answer(input[0], word, blank)) {
+
+                misses[num_missed+1] = '\0';
+                misses[num_missed++] = input[0];
+            }
+        }
+        else {
+            printf("** Do not test my patience, mortal. **\n\n");
+        }
+
+    }
+}
+
+bool in_string(char c, const char *str) {
+    int i = 0;
+    while (str[i] != '\0' && str[i] != c) { i++; }
+    return str[i] == c;
+}
+
+bool check_answer(char c, const char *word, char *blank) {
+    int i = 0;
+    bool found = false;
+    while (word[i] != '\0') {
+        if (word[i] == c) {
+            blank[i] = c;
+            found = true;
+        }
+        i++;
+    }
+    return found;
+}
+
+
+
+
+#ifndef AUTOTEST
+/*
+ * The main function is where everything starts.  Choose a random
+ * word and call one_game.  Feel free to modify the words array,
+ * but don't forget to modify the modulus (currently 4) for choosing 
+ *  a random word from the array.
+ */
+int main() {
+    srandom(time(NULL));
+    char *words[] = { "SUMMER", "AUTUMN", "WINTER", "SPRING" };
+    int word = random() % 4;
+    one_game(words[word]);
+    return 0;
+}
+#endif

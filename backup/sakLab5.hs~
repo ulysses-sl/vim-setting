@@ -1,0 +1,106 @@
+-- Q1 --
+listn k = [0..k]
+
+{-
+*Main> :t (>>=)
+(>>=) :: Monad m => m a -> (a -> m b) -> m b
+
+*Main> [2,4,3] >>= listn
+[0,1,2,0,1,2,3,4,0,1,2,3]
+
+for each item in list, listn is applied and then everything is joined.
+(= join [listn 2, listn 4, listn 3]
+ = join[[0,1,2],[0,1,2,3,4],[0,1,2,3]]
+ = [0,1,2,0,1,2,3,4,0,1,2,3])
+
+*Main> [] >>= listn
+[]
+
+[] is [[]] that does not have any element in it
+
+*Main> [1,2,3] >>= listn >>= listn
+[0,0,1,0,0,1,0,1,2,0,0,1,0,1,2,0,1,2,3]
+
+*Main> [1,2,3] >>= [4,5]
+
+<interactive>:5:13:
+    Couldn't match expected type ‘a0 -> [b]’ with actual type ‘[t0]’
+    Relevant bindings include it :: [b] (bound at <interactive>:5:1)
+    In the second argument of ‘(>>=)’, namely ‘[4, 5]’
+    In the expression: [1, 2, 3] >>= [4, 5]
+    In an equation for ‘it’: it = [1, 2, 3] >>= [4, 5]
+
+[4,5] is not the type of (a -> m b). it's (m b).
+
+*Main> :t (>>)
+(>>) :: Monad m => m a -> m b -> m b
+
+*Main> [1,2,3] >> [4,5]
+[4,5,4,5,4,5]
+for each item in m
+
+*Main> [1,2,3,4] >> "abc"
+"abcabcabcabc"
+-}
+
+
+
+-- Q2 --
+
+class (Monad m) => Monad2 m where
+    return2 :: a -> m a
+    join :: m (m b) -> m b
+    join a = a >>= id
+    bind :: (Functor m) => m a -> (a -> m b) -> m b
+    bind a f = join (fmap f a)
+
+data H2 a = O2 | I2 a deriving (Show)
+
+joinH O2 = O2
+joinH (I2 O2) = O2
+joinH (I2 (I2 a)) = I2 a
+
+instance Functor H2 where
+    fmap f O2 = O2
+    fmap f (I2 x) = I2 (f x)
+
+instance Monad H2 where
+    O2 >>= f = O2
+    (I2 a) >>= f = joinH (I2 (f a))
+    return a = I2 a
+
+instance Monad2 H2 where
+    return2 a = I2 a
+
+data S2 a = E2 | P2 (a, S2 a) deriving (Show)
+
+instance Functor S2 where
+    fmap f E2 = E2
+    fmap f (P2 (a, b)) = P2 (f a, fmap f b)
+{-
+instance Monad H2 where
+    O2 >>= f = O2
+    (I2 a) >>= f = joinH (I2 (f a))
+    return a = I2 a
+
+instance Monad2 H2 where
+    return2 a = I2 a
+-}
+
+-- Q4 --
+doublemap l = l >>= (\x -> [2 * x])
+
+class (Monad m) => Functor2 m where
+    fmap2 :: (a -> b) -> m a -> m b
+    fmap2 f mnd = mnd >>= (return . f)
+
+double x = 2 * x
+
+flatten [] = []
+flatten ([a]:l) = [a] ++ flatten l
+
+instance Functor2 []
+
+
+
+

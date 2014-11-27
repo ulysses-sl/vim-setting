@@ -26,7 +26,7 @@
 %\renewcommand{\sfdefault}{Akzidenz-Grotesk BQ Condensed}
 %\ifxetexorluatex
   \RequirePackage{fontspec}
-  \setmainfont[Kerning=Off]{Garamond Premier Pro}
+  \setmainfont[Kerning=On]{Garamond Premier Pro}
   \setsansfont{Akzidenz-Grotesk BQ Condensed}
 %  \setmathfont{Tex-Gyre Pagella}
 %  \setmathfont[range=\mathit,\mathsfit]{Tex-Gyre Pagella Italic}
@@ -163,7 +163,7 @@
   \par}% to avoid weird spacing bug at the first section if no blank line is left after \maketitle}
 
 \RenewDocumentCommand{\section}{sm}{%
-  \par\addvspace{2.5ex}%
+  \par\addvspace{0.5ex}% 2.5ex
   \phantomsection{}% reset the anchor for hyperrefs
   \addcontentsline{toc}{section}{#2}%
   \strut\sectionstyle{#2}%

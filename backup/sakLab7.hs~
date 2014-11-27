@@ -1,0 +1,90 @@
+-- Q1 --
+
+spec1 (0, '#') = (0,  '#', 'l')
+spec1 (0, 'a') = (1,  'a', 'l')
+spec1 (0, 'b') = (1,  'a', 'l')
+spec1 (0, 'c') = (1,  'a', 'l')
+spec1 (0, 'd') = (1,  'a', 'l')
+spec1 (1, '#') = (2,  '#', 'r')
+spec1 (1, 'a') = (1,  'a', 'l')
+spec1 (1, 'b') = (1,  'a', 'l')
+spec1 (1, 'c') = (1,  'a', 'l')
+spec1 (1, 'd') = (1,  'a', 'l')
+spec1 (2, '#') = (100,'#', 'd')
+spec1 (2, 'a') = (2,  'a', 'r')
+spec1 (2, 'b') = (2,  'b', 'r')
+spec1 (2, 'c') = (2,  'c', 'r')
+spec1 (2, 'd') = (2,  'd', 'r')
+
+
+-- Q2 --
+val (x:xs, 0) = x
+val (x:xs, n) = val (xs, n - 1)
+
+startstring str = "#" ++ str ++ "#"
+startpos str = length str + 1
+
+str1 = "abcd"
+
+{-
+*Main> val (startstring str1, startpos str1)
+'#'
+
+since it's the character on the start pos ('#'), which is empty
+-}
+
+
+-- Q3 --
+chstr (x:xs, c, 0) = c:xs
+chstr (x:xs, c, n) = x:(chstr (xs, c, n-1))
+
+{-
+*Main> chstr (str1, 'z', 2)
+"abzd"
+-}
+
+
+-- Q4 --
+move (str, state, ch, pos) = (newstr, newstate, newch, newpos) where
+                                 (newstate, oldch, newdir) = spec1 (state, ch)
+                                 newstr = chstr (str, oldch, pos)
+                                 newpos = poscalc pos newdir
+                                 newch = val (newstr, newpos)
+
+poscalc n 'l' = n - 1
+poscalc n 'r' = n + 1
+poscalc n 'd' = n
+
+tup1 = (str1, 0, 'd', 3)
+tup2 = (str1, 1, 'c', 2)
+
+{-
+*Main> move tup1
+("abca",1,'c',2)
+
+*Main> move tup2
+("abad",1,'b',1)
+
+*Main> :t move
+move :: ([Char], Int, Char, Int) -> ([Char], Int, Char, Int)
+
+Works with multiple call
+
+*Main> move(move(tup1))
+("abaa",1,'b',1)
+-}
+
+
+-- Q5 --
+run inputtup = let (str, st, ch, pos) = move inputtup in
+               if st /= 100
+               then run (str, st, ch, pos)
+               else (str, st, ch, pos)
+
+startrun str = run (newstr, 0, startch, newpos) where
+                   newstr = startstring str
+                   newpos = startpos str
+                   startch = val (newstr, newpos)
+
+str2 = "bbccaa"
+str3 = "bb#cd"

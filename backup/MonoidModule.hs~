@@ -1,0 +1,12 @@
+module MonoidModule ( Monoid(..), M(..) ) where
+
+class Monoid a where
+    bin :: (a -> a -> a) -> a -> a -> a
+    idM :: a -> a
+
+instance Monoid Integer where
+    bin op x y = (op) x y
+    idM e = e
+
+monext f b e [] = e
+monext f b e (x:xs) = bin b (f x) (monext f b e xs)

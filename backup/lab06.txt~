@@ -1,0 +1,37 @@
+Lab 06
+
+1. 
+It could be a whole lot of mess. After fork happens and (as usually) parent printf shows up (because process setting up takes time?):
+-> PARENT: before 0
+Then parent waits for child, and child prints:
+-> CHILD: before 0
+then pthread call is done, and the main thread of child waits until the runner thread finishes. Then it prints.
+-> CHILD: after 5
+Now we return to parent process, but since it has separate memory space, the value is still 0.
+-> PARENT: after 0
+
+
+2.
+procshare has two separate child processes run to work on their separate memory space to increase counter. Two processes increase their respective counter up to 100000, print the final value, and exit. Then the parent process prints its counter = 0 and exits.
+
+threadshare has two threads competing for increasing a counter in a single memory space. Their increment is not atomic, race condition happens, and the resulting counter numbers for each thread and end counter are...hell knows what. (at least the result count number for the late-ending thread is same as the end counter, to our relief.)
+
+
+3.
+--PREV--
+thread 0x7fb3f47dc700 starting
+thread 0x7fb3f3fdb700 starting
+thread 0x7fb3f47dc700 ending with counter 94772
+thread 0x7fb3f3fdb700 ending with counter 112825
+end counter value (main thread): 112825
+
+--NOW--
+thread 0x7f48407e0700 starting
+thread 0x7f4840fe1700 starting
+thread 0x7f48407e0700 ending with counter 190623
+thread 0x7f4840fe1700 ending with counter 200000
+end counter value (main thread): 200000
+
+
+4.
+

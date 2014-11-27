@@ -120,4 +120,4 @@ export PATH="/usr/local/texlive/2013/bin/x86_64-linux:$PATH"
 export WINEARCH="win32"
 
 # added by Anaconda3 2.0.1 installer
-export PATH="/home/sak/anaconda3/bin:$PATH"
+# export PATH="/home/sak/anaconda3/bin:$PATH"

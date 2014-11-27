@@ -1,0 +1,29 @@
+1.
+a) 5 bits for VPN (32 = 2^5), 10 bits for byte offset (1024 = 2^4)
+b) 4 bits for PFN (16 = 2^4), 10 bits for byte offset (1024 = 2^4)
+
+2. Byte offset takes 12 bits for 4KB, so VPN is max 20 bit.
+a) In conventional single-level page table, there will be 2^20 entries.
+b) 512 MB physical memory can contain 131072 pages (18 bit representable)
+thus there will be 2^18 entries, since only 2^18 PFN choices are possible.
+
+3. First 4 bits are VPN since 9 (max VPN num) can only be represented by at least 4 bits.
+a) 0x9EF: VPN = 9. Valid, and physical address is 0x0EF.
+b) 0x111: VPN = 1. Valid, and physical address is 0x211.
+c) 0x700: VPN = 7. Invalid.
+d) 0x0FF: VPN = 0. Invalid.
+
+4.
+a) 400 ns, since paged memory reference takes 2 accesses. (1 page table access and lookup, 1 actual memory reference)
+b) For every access, there's 75% chance it requires 1 access (actual memory access), and 25% chance it requires 2 access (1 update to TLB from page table, 1 actual reference).
+0.75 * 200 + 0.25 * 400 = 150 + 100 = 200 ns
+
+5.
+a) Yes, until it gets to update the page table with possibly new page, it writhes in pain in the bloody firepit of...er, it's blocked.
+b) No. Updating TLB cache does not require an additional mem I/O aside from the usual page table access (which doesn't count), and the process can keep calm and carry on.
+c) No. Who needs I/O when the page is already in the memory resolvably?
+
+6. 200 = (1 - pfr) * 100 + pfr * (0.7 * 20000000 + 0.3 * 8000000 + 100)
+pfr = 100 / (0.7 * 20000000 + 0.3 * 8000000) = 0.000006 (i.e. very small)
+
+7. 

@@ -1,0 +1,5 @@
+1. fork() creates a clone of the parent process, including the variables s and value, into a separate space. Each process (parent and child) modify its own copy of variables based on whether it is parent or child (determined by the returned value from fork(), 0 signifying child) and prints cooresponding modified variables. Then parent waits until child quits, and then parent quits.
+
+2. It correctly crashed, and I had to reboot.
+
+3-1. execv() completely exit from the current process to execute ls, so the last line is ignored.

@@ -1,4 +1,4 @@
-;;; -*- indent-tabs-mode:nil coding:latin-1-unix -*-
+;;; -*- indent-tabs-mode: nil; coding: latin-1-unix -*-
 ;;;
 ;;; swank-rpc.lisp  -- Pass remote calls and responses between lisp systems.
 ;;;
@@ -32,17 +32,17 @@
   (let ((packet (read-packet stream)))
     (handler-case (values (read-form packet package))
       (reader-error (c)
-        (error (make-condition 'swank-reader-error 
-                               :packet packet :cause c))))))
+        (error 'swank-reader-error 
+               :packet packet :cause c)))))
 
 (defun read-packet (stream)
   (let* ((length (parse-header stream))
          (octets (read-chunk stream length)))
     (handler-case (swank-backend:utf8-to-string octets)
       (error (c) 
-        (error (make-condition 'swank-reader-error 
-                               :packet (asciify octets)
-                               :cause c))))))
+        (error 'swank-reader-error 
+               :packet (asciify octets)
+               :cause c)))))
 
 (defun asciify (packet)
   (with-output-to-string (*standard-output*)
@@ -62,7 +62,7 @@
     (cond ((= count length)
            buffer)
           ((zerop count)
-           (error (make-condition 'end-of-file :stream stream)))
+           (error 'end-of-file :stream stream))
           (t
            (error "Short read: length=~D  count=~D" length count)))))
 
@@ -135,13 +135,26 @@
   (loop for c across (format nil "~6,'0x" length)
         do (write-byte (char-code c) stream)))
 
+(defun switch-to-double-floats (x)
+  (typecase x
+    (double-float x)
+    (float (coerce x 'double-float))
+    (null x)
+    (list (loop for (x . cdr) on x
+                collect (switch-to-double-floats x) into result
+                until (atom cdr)
+                finally (return (append result (switch-to-double-floats cdr)))))
+    (t x)))
+
 (defun prin1-to-string-for-emacs (object package)
   (with-standard-io-syntax
     (let ((*print-case* :downcase)
           (*print-readably* nil)
           (*print-pretty* nil)
-          (*package* package))
-      (prin1-to-string object))))
+          (*package* package)
+          ;; Emacs has only double floats.
+          (*read-default-float-format* 'double-float))
+      (prin1-to-string (switch-to-double-floats object)))))
 
 
 #| TEST/DEMO:

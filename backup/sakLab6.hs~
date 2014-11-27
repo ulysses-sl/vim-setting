@@ -1,0 +1,171 @@
+-- Q1 --
+skipLine = do
+           putChar '\n'
+
+f1 = do
+     ch1 <- getChar
+     ch2 <- getChar
+     ch3 <- getChar
+     skipLine
+
+f2 = do
+     ch1 <- getChar
+     ch2 <- getChar
+     ch3 <- getChar
+     skipLine
+     putChar ch3
+     skipLine
+
+f3 = do
+     putChar 'a'
+     putChar 'b'
+     putChar 'c'
+     skipLine
+
+f4 = do
+     ch <- getChar
+     if ch == '\n'
+     then return ()
+     else do
+          putChar ch
+          skipLine
+
+f5 = do
+     ch <- getChar
+     if ch == '\n'
+     then return ()
+     else do
+          skipLine
+          putChar ch
+          skipLine
+
+write "" = return ()
+write (a:ax) = do
+               putChar a
+               write ax
+
+listn n = [1..n]
+
+f6 list = do
+          list2 <- map listn list
+          list2
+
+f7 list = do
+          list2 <- map listn list
+          list3 <- map listn list2
+          list3
+
+f8 = do
+     ch <- getChar
+     if ch == '\n'
+     then return ()
+     else f8
+
+f9 = f9' ""
+
+f9' str = do
+          ch <- getChar
+          if ch == '\n'
+          then putStr (str ++ [ch])
+          else f9' (str ++ [ch])
+
+
+
+-- Q2 --
+writeln "" = do
+             putChar '\n'
+writeln (s:tr) = do
+                 putChar s
+                 writeln tr
+
+writelnA str = do
+               putStr str
+               putChar '\n'
+
+d1 = writeln "Please enter a string"
+
+readln = readln' ""
+
+readln' str = do
+            ch <- getChar
+            if ch == '\n'
+            then return str
+            else readln' (str ++ [ch])
+
+d2 = do
+     d1
+     readln
+
+d3 str = d3' str ""
+
+d3' "" b = do
+           return b
+
+d3' (a:as) b = do
+               d3' as (a:b)
+
+d4 = do
+     str <- d2
+     d3 str
+
+d5 = do
+     revstr <- d4
+     writeln revstr
+
+d6 = do
+     revstr <- d4
+     writeln (revstr ++ " is the reversed string")
+
+d7 = do
+     writeln "(R)everse or (D)ouble?"
+     readln
+
+doublelist x = x ++ x
+
+d8 = do
+     str <- d2
+     writeln ((doublelist str) ++ " is the doubled string")
+
+testanswer c = do
+               case c of
+                   "r" -> d6
+                   "d" -> d8
+                   _ -> return ()
+{-
+d10 = do
+      str <- d2
+      c <- d7
+      case c of
+          "r" -> writeln ((d3 str) ++ " is the reversed string")
+          "d" -> writeln ((doublelist str) ++ " is the doubled string")
+          _ -> return ()
+-}
+
+
+-- Q3 --
+-- readFile
+-- writeFile
+file1 = do
+        readFile "num1.txt"
+
+file2 = do
+        readFile "text1.txt"
+
+file1A = do
+         num <- file1
+         writeFile "num1A.txt" num
+
+file2A = do
+         text <- file2
+         writeFile "text1A.txt" text
+
+copy f1 f2 = do
+             content <- readFile f1
+             writeFile f2 content
+
+copy2 = do
+        writeln "From: "
+        f1 <- readln
+        writeln "To: "
+        f2 <- readln
+        copy f1 f2

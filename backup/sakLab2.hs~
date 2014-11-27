@@ -1,0 +1,37 @@
+-- Q1 --
+astar = []:(addA astar)
+
+addA [] = ["a"]
+addA lst = map ('a':) lst
+
+
+-- Q2 --
+abstar = []:(addAB abstar)
+
+addAB [] = ["a", "b"]
+addAB lst = foldr (\x -> \y -> ('a':x):('b':x):y) [] lst
+
+
+-- Q3 --
+comp f g = g . f
+
+
+-- Q4 --
+fsmspec1 'a' 0 = 1
+fsmspec1 'a' 1 = 1
+fsmspec1 'a' 2 = 0
+fsmspec1 'b' 0 = 0
+fsmspec1 'b' 1 = 2
+fsmspec1 'b' 2 = 1
+
+
+-- Q5 --
+fsm1 [] s = s
+fsm1 (a:as) s = fsm1 as (fsmspec1 a s)
+
+
+-- Q6 --
+mm1 = \as -> fsm1 as 0
+
+
+

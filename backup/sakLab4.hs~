@@ -1,0 +1,116 @@
+-- Q1 --
+data Weekdays = M | T | W | Th | F deriving (Show, Ord, Eq)
+
+instance Enum Weekdays where
+    toEnum 1 = M
+    toEnum 2 = T
+    toEnum 3 = W
+    toEnum 4 = Th
+    toEnum 5 = F
+
+    fromEnum M = 1
+    fromEnum T = 2
+    fromEnum W = 3
+    fromEnum Th = 4
+    fromEnum F = 5
+
+{-
+*Main> [M .. F]
+[M,T,W,Th,F]
+*Main> succ M
+T
+*Main> pred F
+Th
+*Main> M == M
+True
+*Main> M < T
+True
+*Main> F < T
+False
+-}
+
+
+-- Q2 --
+data S a = E | P (a, S a)
+
+instance Functor S where
+    fmap f E = E
+    fmap f (P (a, b)) = P (f a, fmap f b)
+
+instance Show a => Show (S a) where
+    show E = "E"
+    show (P (a, b)) = "P (" ++ show a ++ ", " ++ show b ++ ")"
+
+instance (Eq a) => Eq (S a) where
+    E == E = True
+    _ == E = False
+    P (a, b) == P (c, d) = (a == c) && (b == d)
+
+instance (Ord a) => Ord (S a) where
+    E <= E               = True
+    _ <= E               = False
+    P (a, b) <= P (c, d) = (b <= d) && (a <= c)
+
+buildstack [] = E
+buildstack (x:xs) = P (x, buildstack xs)
+
+double x = 2 * x
+head (P (a, b)) = a
+
+push (a, b) = P (a, b)
+
+pop (P (a, b)) = (a, b)
+pop E = error "cannot pop empty stack"
+
+stackofint = buildstack [2,3,5,7,1]
+
+{-
+*Main> fmap double stackofint
+P (4, P (6, P (10, P (14, P (2, E)))))
+-}
+
+
+-- Q3 --
+class Monad2 m where
+    return2 :: a -> m a
+    join :: m (m b) -> m b
+    bind :: (Functor m) => m a -> (a -> m b) -> m b
+    bind a f = join (fmap f a)
+
+
+data H1 a = O | I1 a deriving (Show)
+
+joinH (I1 O) = O
+joinH (I1 (I1 a)) = I1 a
+
+
+instance Functor H1 where
+    fmap f O = O
+    fmap f (I1 x) = I1 (f x)
+
+
+instance Monad2 H1 where
+    return2 a = I1 a
+    join O = O
+    join a = joinH a
+    
+testEven n = if n `rem` 2 == 0
+             then I1 n
+             else O
+
+adds (E, c) = c
+adds (P (a, b), c) = push (a, adds (b, c))
+
+joinS E = E
+joinS (P (a, b)) = adds (a, joinS b)
+
+instance Monad2 S where
+    return2 a = P (a, E)
+    join E = E
+    join s = joinS s
+
+teststack n = buildstack [0..n]
+
+s1 = teststack 4
+
+s3 = s1 `bind` teststack

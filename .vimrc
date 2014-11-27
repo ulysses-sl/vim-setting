@@ -53,7 +53,8 @@ set cul
 hi CursorLine term=none cterm=none ctermbg=3
 
 set background=dark
-colorscheme solarized
+"colorscheme solarized
+colorscheme molokai
 
 :command WQ wq
 :command Wq wq
@@ -73,7 +74,7 @@ endif
 :cmap w!! w !sudo tee % > /dev/null
 :cmap W!! w !sudo tee % > /dev/null
 
-let g:slimv_swank_cmd = '! xterm -e csi ~/.vim/slime/swank-chicken.scm &' 
+"let g:slimv_swank_cmd = '! xterm -e csi ~/.vim/slime/swank-chicken.scm &' 
 let g:lisp_rainbow = 1
 
 let g:haddock_browser = '/usr/bin/firefox'
@@ -81,7 +82,8 @@ let g:haddock_docdir = '/home/sak/.haskell/haddock/'
 
 :nmap <Leader>t :NERDTreeToggle<CR>
 
-set foldmethod=indent
+"set foldmethod=indent
+set foldmethod=syntax
 set foldlevel=99
 
 map <c-j> <c-w>j
@@ -94,3 +96,12 @@ let g:pydoc_cmd = '/usr/bin/pydoc3'
 au FileType python set omnifunc=pythoncomplete#Complete
 let g:SuperTabDefaultCompletionType = "context"
 set completeopt=menuone,longest,preview
+
+set guifont=Inconsolata\ 11
+"set guifont=Anonymous\ Pro\ 11
+
+"for python comment # de-indenting problem
+inoremap # X<BS>#
+
+let g:processing_fold=1
+

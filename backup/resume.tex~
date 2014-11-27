@@ -23,7 +23,7 @@
 %\usepackage{CJKutf8}                              % if you need to use CJK to typeset your resume in Chinese, Japanese or Korean
 
 % adjust the page margins
-\usepackage[scale=0.90]{geometry}
+\usepackage[scale=0.89]{geometry}
 %\setlength{\hintscolumnwidth}{3cm}                % if you want to change the width of the column with the dates
 %\setlength{\makecvtitlenamewidth}{10cm}           % for the 'classic' style, if you want to force the width allocated to your name and avoid line breaks. be careful though, the length is normally calculated to avoid any overlap with your personal info; use this at your own typographical risks...
 
@@ -61,7 +61,8 @@
 \makecvtitle
 
 \section{Education}
-\cventry{2008--2015(Expected)}{B.A. Computer Science (GPA 2.89)}{Colgate University}{Hamilton, NY}{}{\textbf{Honor} - Alumni Memorial Scholar (Top 2\% of applicants)} % arguments 3 to 6 can be left empty
+\cventry{May 2015}{Bachelor of Arts, Computer Science}{Colgate University}{Hamilton, NY}{}{\textbf{Honor} - Alumni Memorial Scholar (Top 2\% of Colgate applicants) \newline
+\textbf{Relevant coursework} - Data Structures, Algorithms, Artificial Intelligence, Advanced Functional Programming, Operating System} % arguments 3 to 6 can be left empty
 %\cventry{year--year}{Degree}{Institution}{City}{\textit{Grade}}{Description}
 
 %\section{Master thesis}
@@ -69,16 +70,15 @@
 %\cvitem{supervisors}{Supervisors}
 %\cvitem{description}{Short thesis abstract}
 
-\section{Experience}
+\section{Programming Experience}
 %\subsection{Vocational}
-\cventry{Apr 2014}{Research Assistant}{Psychology Department, Colgate University}{Hamilton, NY}{}{
+\cventry{Apr 2014--Present}{Programmer/Research Assistant}{Psychology Department, Colgate University}{Hamilton, NY}{}{
 \begin{itemize}%
 \item Developed a Pyglet-based performance-critical psychology experiment suite in Python
   \begin{itemize}
-    \item Provided the technology consulting to the student client
-    \item Created UI using the library bindings for OpenGL
+    \item Provided technology consulting to the student client and delivered the 1000-line script without critical bugs within two weeks
+    \item Created UI for the test and surveys using the library bindings for OpenGL
     \item Optimized the program to be twice as fast as the competitor product using profiling techniques
-    \item Delivered the thousand-line script without critical bugs within two weeks
   \end{itemize}
 %\item Achievement 2, with sub-achievements:
 %  \begin{itemize}%
@@ -93,43 +93,51 @@
 %  \end{itemize}
 %\item Achievement 3.
 \end{itemize}}
-\cventry{Mar 2014--Present}{Research Assistant}{Art Department, Colgate University}{Hamilton, NY}{}{
+\cventry{Mar 2014--Present}{Programmer/Research Assistant}{Art Department, Colgate University}{Hamilton, NY}{}{
 \begin{itemize}
 \item Wrote the code for a voice recognition-backed digital artwork in Processing
   \begin{itemize}
-    \item Designed and tweaked a Naive Bayes classifier-based machine learning algorithm
-    \item Improved the accuracy to over 90\% by implementing Hidden Markov Chain
+    \item Designed and optimized a Naive Bayes classifier-based machine learning algorithm
+    \item Improved the accuracy to over 90\% by utilizing Hidden Markov Model of sound transition
+    \item Implemented object recycling algorithm to mitigate garbage collection-induced freeze of Java Virtual Machine
   \end{itemize}
 \item Wrote example Processing codes for the Digital Studio class
   \begin{itemize}
     \item Designed and created OOP templates to be used by students
-    \item Ran code debugging / troubleshooting Q\&A sessions for students
+    \item Presented code debugging / troubleshooting Q\&A sessions for students
   \end{itemize}
 \end{itemize}}
 %\subsection{Miscellaneous}
 %\cventry{year--year}{Job title}{Employer}{City}{}{Description}
 
 \section{Personal Projects}
-\cvitemwithcomment{Todomatic}{A continuation-based to-do planner with ncurses frontend}{Scheme}
-
-\cvitemwithcomment{ArraySort}{Implementations and benchmarks of popular sorting algorithms, including 3-part quicksort}{Python}
-
-\cvitemwithcomment{Scrabble AI}{A test-driven group development of Scrabble AI based on gaddag data structure}{Ruby}
+\cvitem{Club Manager}{Written in \emph{\textbf{Clojure}} \hfill{}\emph{Fall 2014--Present}\begin{itemize}
+\item \small{Club member management program for one of the biggest clubs on campus (200+ members)}
+\item \small{Supports .csv input and output for batch processing, complex query join, and sorted output}
+\end{itemize}}
+\cvitem{Shakespeare}{Written in \emph{\textbf{Python}} \hfill{}\emph{Fall 2014--Present}\begin{itemize}
+\item \small{Markov Chain-based natural language generator that mimics Shakespearean sonnet style}
+\end{itemize}}
+\cvitem{Todomatic}{Written in \emph{\textbf{Scheme}} \hfill{}\emph{Spring 2014}\begin{itemize}
+\item \small{To-do list manager/planner for personal use}
+\item \small{Utilizes extensive continuation control structure}
+\end{itemize}}
+\cvitem{ArraySort}{Written in \emph{\textbf{Python}} \hfill{}\emph{Spring 2014}\begin{itemize}
+\item \small{Implementations and benchmarks of popular array sorting algorithms}
+\item \small{Includes selection sort, insertion sort, top-down mergesort, bottom-up mergesort, quicksort, and 3-partition quicksort}
+\end{itemize}}
 
 \section{Computer Skills}
-\cvdoubleitem{Proficient in}{Python, Java, Scheme}{Familiar with}{Ruby, Haskell, C}
-\cvitem{Knowledge}{Artificial intelligence, machine learning, functional programming}
+\cvitem{Language Proficiency}{\newline{}Python \faStar\faStar\faStar\faStar\faStar, Scheme \faStar\faStar\faStar\faStar\faStar, Java \faStar\faStar\faStar\faStar\faStarEmpty, Haskell \faStar\faStar\faStar\faStarEmpty\faStarEmpty, C \faStar\faStar\faStar\faStarEmpty\faStarEmpty, Clojure \faStar\faStar\faStar\faStarEmpty\faStarEmpty}
+%\begin{cvcolumns}
+%    \cvcolumn{Python}
+%\end{cvcolumns}
+\cvitem{Interests}{Artificial intelligence, machine learning, functional programming}
 \cvitem{Tool Use}{\LaTeX, Linux console commands, vim, git}
-\cvitem{etc.}{Self-studied SICP}
 %\cvdoubleitem{category 3}{XXX, YYY, ZZZ}{category 6}{XXX, YYY, ZZZ}
 
 \section{Other Skills}
-\cvitem{Language}{English(bilingual), Korean(bilingual), Japanese(conversational)}
-\cvitem{Social}{Teaching, brainstorm facilitation}
-
-\section{Personal}
-\cvitem{Hobby}{Chinese tea. Learning new programming theories and tricks. Reinventing the wheel.}
-\cvitem{etc.}{Finished 2-year military service in South Korea}
+\cvitem{Languages}{English(bilingual), Korean(bilingual), Japanese(conversational)}
 
 %\section{Extra 1}
 %\cvlistitem{Item 1}

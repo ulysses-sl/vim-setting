@@ -1,0 +1,1 @@
+let g:slimv_swank_cmd = '! xterm -e sbcl --load ~/.vim/slime/swank-loader.lisp &' 

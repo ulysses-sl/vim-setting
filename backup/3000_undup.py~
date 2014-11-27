@@ -1,0 +1,6 @@
+prev = ""
+
+for line in open("3000_strip.txt", "r"):
+    if prev != line:
+        print(line)
+        prev = line
