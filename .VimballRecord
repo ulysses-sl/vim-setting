@@ -1,2 +1,0 @@
-haskellmode-20101118.vba: call delete('/home/sak/.vim/compiler/ghc.vim')|call delete('/home/sak/.vim/ftplugin/haskell.vim')|call delete('/home/sak/.vim/ftplugin/haskell_doc.vim')|call delete('/home/sak/.vim/ftplugin/haskell_hpaste.vim')|call delete('/home/sak/.vim/autoload/haskellmode.vim')|call delete('/home/sak/.vim/doc/haskellmode.txt')
-supertab.vmb: call delete('/home/sak/.vim/doc/supertab.txt')|call delete('/home/sak/.vim/plugin/supertab.vim')

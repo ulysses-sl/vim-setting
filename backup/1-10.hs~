@@ -1,4 +1,0 @@
-removeFst m [] = []
-removeFst m (x:xs) = if (x == m)
-                     then removeFst m xs
-                     else [x] ++ removeFst m xs

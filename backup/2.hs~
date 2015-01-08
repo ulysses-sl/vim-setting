@@ -1,3 +1,0 @@
-fibs = 1 : 2 : zipWith (+) fibs (tail fibs)
-
-main = putStrLn (show (sum [x | x <- take 1000000 fibs, x <= 4000000, even x]))

@@ -1,6 +1,0 @@
-def powerset(setIn):
-    setOut = [[]]
-    for item in setIn:
-        setOut = setOut + [subset + [item] for subset in setOut]
-    for subset in setOut:
-        print(subset)

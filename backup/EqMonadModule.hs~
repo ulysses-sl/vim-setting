@@ -1,7 +1,0 @@
-module EqMonadModule ( EqMonad(..) ) where
-
-class (Monad m) => EqMonad m where
-    eqreturn :: (Eq a) => a -> m a
-    eqbind :: (Eq a, Eq b) => m a -> (a -> m b) -> m b
-
-

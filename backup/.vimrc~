@@ -105,4 +105,3 @@ inoremap # X<BS>#
 
 let g:processing_fold=1
 
-:nmap <Leader>pp ihello<ESC>2hrrlrr$a,world<ESC>
